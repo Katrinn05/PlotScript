@@ -30,7 +30,7 @@ def skaner(source: str, tokeny: List[Tuple[TokenBase, str]]) -> int:
 
     current_char = source[current_ind]
 
-    if current_char.isspace():
+    if stan == Stage.START and current_char.isspace():
         tokeny.append((TokenBase("WHITESPACE", "biały znak"), current_char))
         current_ind += 1
         return 1
@@ -62,7 +62,7 @@ def skaner(source: str, tokeny: List[Tuple[TokenBase, str]]) -> int:
         else:
             tokeny.append(current_token)
             stan = Stage.START
-            current_ind -= 1  
+            current_ind -= 1
     elif stan == Stage.IDENTYFIKATOR:
         if current_char.isalnum():
             current_token = (current_token[0], current_token[1] + current_char)
@@ -76,9 +76,6 @@ def skaner(source: str, tokeny: List[Tuple[TokenBase, str]]) -> int:
     return 1
 
 def token_to_html(ttype: str, tvalue: str) -> str:
-    """
-    Zamienia pojedynczy token na fragment HTML z odpowiednim stylem.
-    """
     style_map = {
         "WHITESPACE":  "",
         "LC":          "color: blue;",        
@@ -107,9 +104,6 @@ def token_to_html(ttype: str, tvalue: str) -> str:
     return f'<span style="{css}">{safe_text}</span>'
 
 def generate_html(tokens: List[Tuple[TokenBase, str]]) -> str:
-    """
-    Generuje kompletny dokument HTML na podstawie listy tokenów.
-    """
     html_parts = []
     for token_base, tvalue in tokens:
         html_parts.append(token_to_html(token_base.kod, tvalue))
