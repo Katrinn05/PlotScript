@@ -57,6 +57,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
 | `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
 | `'...'`          | String value (for defining file path, color etc.)          |
+| `$$...$$`        | Multiline Block of Embedded function                       |
 
 ## Example PlotScript Code
 
