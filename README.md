@@ -49,7 +49,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `output`         | File path for output image keyword                         |
 | `axis1`, `axis2` | Plot axes                                                  |
 | `arrange(...)`   | Function to generate a numeric range                       |
-| `func(...)`      | Mathematical function definition                           |
+| `func(...)`      | Embedded function definition                               |
 | `input(...)`     | Function to load data from a file                          |
 | `axis-scale(...)`| Axis scaling configuration                                 |
 | `color`          | Line color for the plot                                    |
