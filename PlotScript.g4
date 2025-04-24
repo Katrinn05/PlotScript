@@ -86,6 +86,10 @@ expr
     | LPAREN expr RPAREN
     | Identifier
     | Number
+    | expr (AND | OR) expr
+    | NOT expr
+    | TRUE_KW
+    | FALSE_KW
     ;
 
 /*────────────
