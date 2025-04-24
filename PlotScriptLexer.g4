@@ -1,17 +1,12 @@
-lexer grammar PlotScriptLexer;
+lexer grammar PlotScriptLexerCPP;
 
 /*─────────────────────────
   Lexer default (PlotScript)
   ─────────────────────────*/
 
 CPP : 'CPP' ;
-PY  : 'PY'  ;
 
-
-FUNC_START : FUNC_CPP_START ; // | FUNC_PY_START ;s
 FUNC_CPP_START : '$' CPP '$' -> pushMode(FUNC_CPP) ;
-// FUNC_PY_START : '$' PY '$' -> pushMode(FUNC_PY) ;
-FUNC_END   : '$$' -> popMode ;
 
 String     : '\'' Character* '\'' ;
 Number     : '-'? Digit+ ('.' Digit+)? ;
@@ -28,6 +23,8 @@ Whitespace : [ \t\r\n]+ -> skip ;
   ─────────────────────────*/
 
 mode FUNC_CPP;
+
+FUNC_END   : '$$' -> popMode ;
 
 TYPE_INT      : 'int';
 TYPE_DOUBLE   : 'double' | 'float';
@@ -55,16 +52,3 @@ LINE_COMMENT
         : '//' ~[\r\n]*    -> skip ;
 BLOCK_COMMENT
         : '/*' .*? '*/'    -> skip ;
-
-// TODO
-/*─────────────────────────
-  Lexer MODE for embedded Python code
-  ─────────────────────────*/
-// DEF      : 'def';
-// IMPORT   : 'import';
-// AS       : 'as';
-// PASS     : 'pass';
-// TRUE_KW  : 'True';
-// FALSE_KW : 'False';
-// NONE_KW  : 'None';
-// COLON    : ':';
