@@ -73,8 +73,7 @@ plot1{
 wykres2{
     axis1: arrange(first(0), last(10), step(0.5f)); 
     axis2: func(
-        language('CPP'),
-        $$
+        $CPP$
         double f(double x){
             return x*x;
         }
@@ -90,50 +89,9 @@ my_plot3{
     color: '#FF0000';
 }
 
-sinePy{
-    axis1: arrange(first(-6.28), last(6.28), step(0.05));
-    axis2: func(
-        language('PY'),
-        $$
-        import math
-        def f(x: float) -> float:
-            return math.sin(x)
-        $$
-    );
-    color: '#3366FF';
-    output: 'py_sine.png';
-}
-
-export(plot1, wykres2, my_plot3, sinePy);
+export(plot1, wykres2, my_plot3);
 ```
 ## Grammar (Extended Backus–Naur form)
 [.g4 file with grammar](PlotScript.g4)
-
-|                        |                                                                                                                                                                                                                                                                                                                                                                              |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Program                | = { PlotDefinition }, [ ExportStatement ] ;                                                                                                                                                                                                                                                                                                                                  |
-| PlotDefinition         | = PlotName, PlotBlock ;                                                                                                                                                                                                                                                                                                                                                      |
-| PlotName               | = Identifier ;                                                                                                                                                                                                                                                                                                                                                               |
-| PlotBlock              | = "{", { PlotStatement }, "}" ;                                                                                                                                                                                                                                                                                                                                              |
-| PlotStatement          | = PlotFunctionIdentifier, ":", Expression, ";" ;                                                                                                                                                                                                                                                                                                                             |
-| PlotFunctionIdentifier | = "axis1" \| "axis2" \| "color" \| "output";                                                                                                                                                                                                                                                                                                                                 |
-| Expression             | = Value \| List \| FunctionCall ;                                                                                                                                                                                                                                                                                                                               |
-| Value                  | = String \| Number \| Identifier ;                                                                                                                                                                                                                                                                                                                                           |
-| List                   | = "[", [ Value, { ",", Value } ], "]" ;                                                                                                                                                                                                                                                                                                                                      |
-| FunctionCall           | = ArrangeLikeFunction, "(", RangeArgs, ")" \| StringLikeFunction, "(", String, ")" \| "func", "(", LanguageDecl, ",", FunctionBody ,")";                                                                                                                                                                                                                                     |
-| ArrangeLikeFunction    | = "arange" \| "axis-scale";                                                                                                                                                                                                                                                                                                                                                  |
-| StringLikeFunction     | = "input";                                                                                                                                                                                                                                                                                                                                                       |
-| RangeArgs              | = "first", "(", Number, ")", ",", "last", "(", Number, ")", [",", "step", "(", Number, ")"]                                                                                                                                                                                                                                                                                  |
-| LanguageDecl           | = "language", "(", String, ")" ;                                                                                                                                                                                                                                                                                                                                             |
-| FunctionBody           | = MultiLineCode ; // Embedded C++ function body                                                                                                                                                                                                                                                                                                                              |
-| ExportStatement        | = "export", "(", PlotName, { ",", PlotName }, ")", ";" ;                                                                                                                                                                                                                                                                                                                     |
-| CPP | = "CPP" |
-| PY | = "PY" |
-| Identifier             | = Letter, {Character} ;                                                                                                                                                                                                                                                                                                                                                      |
-| Number                 | = ["-"], Digit, { Digit }, [ ".", Digit, { Digit } ] ;                                                                                                                                                                                                                                                                                                                       |
-| String                 | = "'", { Character }, "'" ;                                                                                                                                                                                                                                                                                                                                                  |
-| Digit                  | = "0" \| "1" \| "2" \| "3" \| "4" \| "5" \| "6" \| "7" \| "8" \| "9" ;                                                                                                                                                                                                                                                                                                       |
-| Letter                 | = "A" \| "B" \| "C" \| "D" \| "E" \| "F" \| "G" \| "H" \| "I" \| "J" \| "K" \| "L" \| "M" \| "N" \| "O" \| "P" \| "Q" \| "R" \| "S" \| "T" \| "U" \| "V" \| "W" \| "X" \| "Y" \| "Z" \| "a" \| "b" \| "c" \| "d" \| "e" \| "f" \| "g" \| "h" \| "i" \| "j" \| "k" \| "l" \| "m" \| "n" \| "o" \| "p" \| "q" \| "r" \| "s" \| "t" \| "u" \| "v" \| "w" \| "x" \| "y" \| "z" ; |
-| Character              | = Letter \| Digit \| "_" \| "-" ;                                                                                                                                                                                                                                                                                                                                                   |
-| Symbol                 | = "[" \| "]" \| "{" \| "}" \| "(" \| ")" \| "<" \| ">" \| "'" \| '"' \| "=" \| "\|" \| "." \| "," \| ";" \| "-" \| "+" \| "*" \| "\" \| "%" \| "&" \| "?" \| "\n" \| "\t" \| "\r" \| "\f" \| "\b" ;                                                                                                                                                                          |
-| MultiLineCode          | = "$$", {Character \| Sybol}, "$$";                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                 |
+[.g4 file with lekser](PlotScriptLexer.g4)
+                                                                                                                                               |
