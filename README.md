@@ -91,7 +91,8 @@ my_plot3{
 
 export(plot1, wykres2, my_plot3);
 ```
-## Grammar (Extended Backus–Naur form)
+## Grammar
 [.g4 file with grammar](PlotScript.g4)
+
 [.g4 file with lekser](PlotScriptLexer.g4)
                                                                                                                                                |
