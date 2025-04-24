@@ -39,12 +39,10 @@ rangeArgs
     ;
 
 /*─────────────
-  Embedded code
+  Embedded C++ code
   ─────────────*/
 
-languageDecl : 'language' '(' ( CPP | PY ) ')' ;
-
-functionBlock  : FUNC_START funcDeclaration* FUNC_END ;
+functionBlock  : FUNC_CPP_START funcDeclaration* FUNC_END ;
 
 funcDeclaration
     : typeSpecifier Identifier LPAREN paramList? RPAREN compoundBlock
@@ -91,6 +89,11 @@ expr
     | TRUE_KW
     | FALSE_KW
     ;
+
+/*─────────────
+  Embedded Python code
+  ─────────────*/
+//TODO
 
 /*────────────
   Export
