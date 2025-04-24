@@ -40,6 +40,8 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ## Token Overview
 
+### PlotScript tokens
+
 | Token           | Description                                               |
 |------------------|------------------------------------------------------------|
 | *`yourVarName`*  | A user-defined variable that holds a plot definition     |
@@ -57,9 +59,34 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
 | `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
 | `'...'`          | String value (for defining file path, color etc.)          |
-| `$$...$$`        | Multiline Block of Embedded function  
-| `CPP`            | Language identifier C++ (used inside `language(...)`)      |
-| `PY`             | Language identifier Python (used inside `language(...)`)|
+| `$CPP$...$$`     | Multiline Block of Embedded CPP function                   |
+
+### Embedded CPP function tokens
+
+| Token       | Opis                      |
+|-------------|---------------------------|
+| TYPE_INT    | 'int'                     |
+| TYPE_DOUBLE | 'double' \| 'float'       |
+| TYPE_BOOL   | 'bool'                    |
+| TYPE_VOID   | 'void'                    |
+| PLUS        | '+'                       |
+| MINUS       | '-'                       |
+| STAR        | '*'                       |
+| DIV         | '/'                       |
+| ASSIGN      | '='                       |
+| COMMA       | ','                       |
+| SEMI        | ';'                       |
+| LPAREN      | '('                       |
+| LBRACE      | '['                       |
+| RPAREN      | ')'                       |
+| RBRACE      | ']'                       |
+| IF          | 'if'                      |
+| ELSE        | 'else'                    |
+| FOR         | 'for'                     |
+| RETURN      | 'return'                  |
+| NUMBER      | '-'? Digit+ ('.' Digit+)? |
+| ID          | [a-zA-Z_][a-zA-Z0-9_]*    |
+
 
 ## Example PlotScript Code
 
