@@ -59,7 +59,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
 | `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
 | `'...'`          | String value (for defining file path, color etc.)          |
-| `$CPP$...$$`     | Multiline Block of Embedded CPP function                   |
+| `$'CPP'$...$$`     | Multiline Block of Embedded CPP function                   |
 
 ### Embedded CPP function tokens
 
@@ -100,7 +100,7 @@ plot1{
 wykres2{
     axis1: arrange(first(0), last(10), step(0.5f)); 
     axis2: func(
-        $CPP$
+        $'CPP'$
         double f(double x){
             return x*x;
         }
