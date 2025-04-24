@@ -1,61 +1,154 @@
 grammar PlotScript;
 
-Program : PlotDefinition* ExportStatement? EOF ;
+/*──────────────────────────
+  Parser rules – PlotScript
+  ──────────────────────────*/
 
-PlotDefinition : PlotName PlotBlock ;
+program          : plotDefinition* exportStatement? EOF ;
 
-PlotName : Identifier ;
+plotDefinition   : plotName plotBlock ;
+plotName         : Identifier ;
 
-PlotBlock : '{' PlotStatement* '}' ;
+plotBlock        : '{' plotStatement* '}' ;
+plotStatement    : plotFunctionIdentifier ':' expression ';' ;
 
-PlotStatement : PlotFunctionIdentifier ':' Expression ';';
+plotFunctionIdentifier
+                 : 'axis1' | 'axis2' | 'color' | 'output' ;
 
-PlotFunctionIdentifier : 'axis1' | 'axis2' | 'color' | 'output' ;
+expression       : value | list | functionCall ;
+value            : String | Number | Identifier ;
+list             : '[' (value (',' value)*)? ']' ;
 
-Expression : Value | List | FunctionCall ;
+functionCall
+    : arrangeLikeFunction '(' rangeArgs ')'                 
+    | stringLikeFunction  '(' String ')'                    
+    | 'func' '(' languageDecl ',' functionBody ')'          
+    ;
 
-Value : String | Number | Identifier ;
+arrangeLikeFunction : 'arrange' | 'axis-scale' ;
+stringLikeFunction  : 'input' ;
 
-List : '[' (Value (',' Value)*)? ']' ;
+rangeArgs
+    : 'first' '(' Number ')' ',' 'last' '(' Number ')'                
+    | 'first' '(' Number ')' ',' 'last' '(' Number ')' ','            
+      'step'  '(' Number ')'                                          
+    ;
 
-FunctionCall : 
-    ArrangeLikeFunction '(' RangeArgs ')' |
-    StringLikeFunction '(' String ')' |
-    'func' '(' LanguageDecl FunctionBody ')'
-;
+/*─────────────
+  Embedded code
+  ─────────────*/
 
-ArrangeLikeFunction : 'arrange' | 'axis-scale' ;
+languageDecl : 'language' '(' ( CPP | PY ) ')' ;
 
-StringLikeFunction : 'input' ;
+functionBody  : FUNC_START funcStatement* FUNC_END ;
 
-RangeArgs : 
-    'first' '(' Number ')' ',' 'last' '(' Number ')' |
-    'first' '(' Number ')' ',' 'last' '(' Number ')' ',' 'step' '(' Number ')'
-;
+funcStatement
+    : funcDeclaration ';'        
+    | assignment ';'             
+    | returnStmt ';'             
+    | controlStructure          
+    ;
 
-LanguageDecl : 
-    'lang' '(' String ')' ;
+typeSpecifier
+    : TYPE_INT
+    | TYPE_DOUBLE
+    | TYPE_BOOL
+    | TYPE_VOID
+    ;
 
-FunctionBody : MultiLineCode ;
+funcDeclaration
+    : typeSpecifier Identifier LPAREN paramList? RPAREN compoundBlock
+    ;
 
-ExportStatement : 'export' '(' PlotName (',' PlotName)* ')' ;
+paramList
+    : parameter (',' parameter)*
+    ;
+parameter
+    : typeSpecifier Identifier
+    ;
 
-MultiLineCode :
-    '$$' .*? '$$' -> channel(HIDDEN)
-;
+assignment     : Identifier ASSIGN expr ;
+returnStmt     : RETURN expr? ;
+controlStructure
+    : IF LPAREN expr RPAREN compoundBlock
+      (ELSE compoundBlock)?
+    | FOR LPAREN assignment expr SEMI assignment RPAREN compoundBlock
+    ;
 
+compoundBlock  : LBRACE funcStatement* RBRACE ;
 
+expr
+    : expr (PLUS | MINUS) expr
+    | expr (STAR | DIV)  expr
+    | LPAREN expr RPAREN
+    | Identifier
+    | Number
+    ;
 
-Letter : [a-zA-Z]+ ;
+/*────────────
+  Export
+  ────────────*/
 
-Digit : [0-9]+ ;
+exportStatement : 'export' '(' plotName (',' plotName)* ')' ;
 
-Number : '-'? Digit ('.' Digit+)? ;
+/*─────────────────────────
+  Lexer default (PlotScript)
+  ─────────────────────────*/
 
-Character : Letter | Digit | '_' | '-' ;
+CPP : 'CPP' ;
+PY  : 'PY'  ;
 
-String : '\'' Character* '\'' ;
+FUNC_START : '$$' -> pushMode(FUNC) ;
+FUNC_END   : '$$' -> popMode ;
 
-Identifier : Letter (Character*) ;
+String     : '\'' Character* '\'' ;
+Number     : '-'? Digit+ ('.' Digit+)? ;
+Identifier : Letter Character* ;
+
+fragment Letter    : [a-zA-Z] ;
+fragment Digit     : [0-9] ;
+fragment Character : Letter | Digit | '_' | '-' ;
 
 Whitespace : [ \t\r\n]+ -> skip ;
+
+/*─────────────────────────
+  Lexer MODE for embedded C++/Python code
+  ─────────────────────────*/
+
+mode FUNC;
+
+TYPE_INT      : 'int';
+TYPE_DOUBLE   : 'double' | 'float';
+TYPE_BOOL     : 'bool';
+TYPE_VOID     : 'void';
+
+PLUS    : '+';    MINUS  : '-';
+STAR    : '*';    DIV    : '/';
+ASSIGN  : '=';
+COMMA   : ',';
+SEMI    : ';';
+LPAREN  : '(';    RPAREN : ')';
+LBRACE  : '{';    RBRACE : '}';
+
+IF      : 'if';
+ELSE    : 'else';
+FOR     : 'for';
+RETURN  : 'return';
+
+NUMBER  : '-'? Digit+ ('.' Digit+)? ;
+ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
+
+WS_FUNC : [ \t\r\n]+       -> skip ;
+LINE_COMMENT
+        : '//' ~[\r\n]*    -> skip ;
+BLOCK_COMMENT
+        : '/*' .*? '*/'    -> skip ;
+
+DEF      : 'def';
+IMPORT   : 'import';
+AS       : 'as';
+PASS     : 'pass';
+TRUE_KW  : 'True';
+FALSE_KW : 'False';
+NONE_KW  : 'None';
+COLON    : ':';

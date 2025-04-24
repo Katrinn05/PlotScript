@@ -57,7 +57,9 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
 | `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
 | `'...'`          | String value (for defining file path, color etc.)          |
-| `$$...$$`        | Multiline Block of Embedded function                       |
+| `$$...$$`        | Multiline Block of Embedded function  
+| `CPP`            | Language identifier C++ (used inside `language(...)`)      |
+| `PY`             | Language identifier Python (used inside `language(...)`)|
 
 ## Example PlotScript Code
 
@@ -88,7 +90,21 @@ my_plot3{
     color: '#FF0000';
 }
 
-export(plot1, wykres2, my_plot3);
+sinePy{
+    axis1: arrange(first(-6.28), last(6.28), step(0.05));
+    axis2: func(
+        language('PY'),
+        $$
+        import math
+        def f(x: float) -> float:
+            return math.sin(x)
+        $$
+    );
+    color: '#3366FF';
+    output: 'py_sine.png';
+}
+
+export(plot1, wykres2, my_plot3, sinePy);
 ```
 ## Grammar (Extended Backus–Naur form)
 [.g4 file with grammar](PlotScript.g4)
@@ -111,6 +127,8 @@ export(plot1, wykres2, my_plot3);
 | LanguageDecl           | = "language", "(", String, ")" ;                                                                                                                                                                                                                                                                                                                                             |
 | FunctionBody           | = MultiLineCode ; // Embedded C++ function body                                                                                                                                                                                                                                                                                                                              |
 | ExportStatement        | = "export", "(", PlotName, { ",", PlotName }, ")", ";" ;                                                                                                                                                                                                                                                                                                                     |
+| CPP | = "CPP" |
+| PY | = "PY" |
 | Identifier             | = Letter, {Character} ;                                                                                                                                                                                                                                                                                                                                                      |
 | Number                 | = ["-"], Digit, { Digit }, [ ".", Digit, { Digit } ] ;                                                                                                                                                                                                                                                                                                                       |
 | String                 | = "'", { Character }, "'" ;                                                                                                                                                                                                                                                                                                                                                  |
