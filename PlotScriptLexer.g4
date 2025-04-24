@@ -7,8 +7,10 @@ lexer grammar PlotScriptLexer;
 CPP : 'CPP' ;
 PY : 'PY' ;
 
-FUNC_CPP_START : '$' CPP '$' -> pushMode(FUNC_CPP) ;
-FUNC_PY_START : '$' PY '$' -> pushMode(FUNC_PY) ;
+FUNC_CPP_START : '$CPP$' -> pushMode(FUNC_CPP) ;
+FUNC_PY_START : '$PY$' -> pushMode(FUNC_PY) ;
+
+FUNC_END       : '$$' ;
 
 String     : '\'' Character* '\'' ;
 Number     : '-'? Digit+ ('.' Digit+)? ;
@@ -84,7 +86,7 @@ STAR     : '*' ; DIV   : '/' ;
 ASSIGN   : '=' ;
 LPAREN   : '(' ; RPAREN : ')' ;
 COMMA    : ',' ;
-NEWLINE  : '\r'? '\n' ;
+NEWLINE  : '\r'? '\n' -> skip ;
 
 NUMBER   : '-'? Digit+ ('.' Digit+)? ;
 ID       : [a-zA-Z_][a-zA-Z0-9_]* ;
