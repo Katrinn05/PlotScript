@@ -59,34 +59,60 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
 | `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
 | `'...'`          | String value (for defining file path, color etc.)          |
-| `$'CPP'$...$$`     | Multiline Block of Embedded CPP function                   |
+| `$'CPP'$...$$`    | Multiline Block of Embedded CPP function                 |
+| `$'PY'$...$$`     | Multiline Block of Embedded PY function                 |
 
 ### Embedded CPP function tokens
 
 | Token       | Opis                      |
 |-------------|---------------------------|
-| TYPE_INT    | 'int'                     |
-| TYPE_DOUBLE | 'double' \| 'float'       |
-| TYPE_BOOL   | 'bool'                    |
-| TYPE_VOID   | 'void'                    |
-| PLUS        | '+'                       |
-| MINUS       | '-'                       |
-| STAR        | '*'                       |
-| DIV         | '/'                       |
-| ASSIGN      | '='                       |
-| COMMA       | ','                       |
-| SEMI        | ';'                       |
-| LPAREN      | '('                       |
-| LBRACE      | '['                       |
-| RPAREN      | ')'                       |
-| RBRACE      | ']'                       |
-| IF          | 'if'                      |
-| ELSE        | 'else'                    |
-| FOR         | 'for'                     |
-| RETURN      | 'return'                  |
-| NUMBER      | '-'? Digit+ ('.' Digit+)? |
-| ID          | [a-zA-Z_][a-zA-Z0-9_]*    |
+| `TYPE_INT`    | `'int'`                     |
+| `TYPE_DOUBLE` | `'double' \| 'float'`       |
+| `TYPE_BOOL`   | `'bool'`                    |
+| `TYPE_VOID`   | `'void'`                    |
+| `PLUS`        | `'+'`                       |
+| `MINUS`       | `'-'`                       |
+| `STAR`        | `'*'`                       |
+| `DIV`         | `'/'`                       |
+| `ASSIGN`      | `'='`                       |
+| `COMMA`       | `','`                       |
+| `SEMI`        | `';'`                      |
+| `LPAREN`      | `'('`                       |
+| `LBRACE`      | `'['`                       |
+| `RPAREN`      | `')'`                       |
+| `RBRACE`      | `']'`                       |
+| `IF`          | `'if'`                      |
+| `ELSE`        | `'else'`                    |
+| `FOR`         | `'for'`                     |
+| `RETURN`      | `'return'`                  |
+| `NUMBER`      | `'-'? Digit+ ('.' Digit+)?` |
+| `ID`          | `[a-zA-Z_][a-zA-Z0-9_]*`    |
 
+### Embedded PY function tokens
+
+| Token              | Opis        |
+|--------------------|----------------------------------------------|
+| `DEF`              | `'def'`                                      |
+| `IMPORT`           | `'import'`          |
+| `AS`               | `'as'`             |
+| `PASS`             | `'pass'`                  |
+| `TRUE_KW`          | `'True'`             |
+| `FALSE_KW`         | `'False'`            |
+| `NONE_KW`          | `'None'`     |
+| `COLON`            | `':'`       |
+| `PLUS`             | `'+'`                                        |
+| `MINUS`            | `'-'`                                        |
+| `STAR`             | `'*'`                                        |
+| `DIV`              | `'/'`                                        |
+| `ASSIGN`           | `'='`                                        |
+| `COMMA`            | `','`                                        |
+| `LPAREN`           | `'('`                                        |
+| `RPAREN`           | `')'`                                        |
+| `NEWLINE`          | `'\r'? '\n'`                |
+| `NUMBER`           | `'-'? Digit+ ('.' Digit+)?`                  |
+| `ID`               | `[a-zA-Z_][a-zA-Z0-9_]*`                     |
+| `WS_PY`            | `[ \\t\\r]+`        |
+| `LINE_COMMENT_PY`  | `'#' ~[\\r\\n]*` |
 
 ## Example PlotScript Code
 
@@ -116,10 +142,23 @@ my_plot3{
     color: '#FF0000';
 }
 
-export(plot1, wykres2, my_plot3);
+sinePy{
+    axis1: arrange(first(-6.28), last(6.28), step(0.05));
+    axis2: func(
+        $'PY'$
+        import math
+        def f(x: float) -> float:
+            return math.sin(x)
+        $$
+    );
+    color: '#3366FF';
+    output: 'py_sine.png';
+}
+
+export(plot1, wykres2, my_plot3, sinePy);
 ```
 ## Grammar
 [.g4 file with grammar](PlotScript.g4)
 
 [.g4 file with lekser](PlotScriptLexer.g4)
-                                                                                                                                               |
+                                                                                                                                            
