@@ -46,8 +46,15 @@ ELSE    : 'else';
 FOR     : 'for';
 RETURN  : 'return';
 
+AND     : '&&';
+OR      : '||';
+NOT     : '!';
+
 NUMBER  : '-'? Digit+ ('.' Digit+)? ;
 ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
+
+TRUE_KW  : 'true' ;
+FALSE_KW : 'false' ;
 
 WS_FUNC : [ \t\r\n]+       -> skip ;
 LINE_COMMENT
