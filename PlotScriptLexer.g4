@@ -97,34 +97,52 @@ CPP_BLOCK_COMMENT
 /*─────────────────────────
   Lexer MODE for embedded Python code
   ─────────────────────────*/
-// TODO
-
 mode FUNC_PY;
 
-// PY_FUNC_END   : '$$' -> popMode ;
+PY_FUNC_END   : '$$' -> popMode ;
 
-PY_DEF      : 'def' ;
-PY_IMPORT   : 'import' ;
-PY_AS       : 'as' ;
-PY_PASS     : 'pass' ;
-PY_TRUE_KW  : 'True' ;
-PY_FALSE_KW : 'False' ;
-PY_NONE_KW  : 'None' ;
+PY_DEF        : 'def' ;
+PY_IMPORT     : 'import' ;
+PY_AS         : 'as' ;
+PY_PASS       : 'pass' ;
+PY_RETURN     : 'return' ;
 
-PY_COLON    : ':' ;
-PY_PLUS     : '+' ;
-PY_MINUS : '-' ;
-PY_STAR     : '*' ;
-PY_DIV   : '/' ;
-PY_ASSIGN   : '=' ;
-PY_LPAREN   : '(' ;
-PY_RPAREN : ')' ;
-PY_COMMA    : ',' ;
-// PY_NEWLINE  : '\r'? '\n' -> skip ;
+PY_TRUE_KW    : 'True' ;
+PY_FALSE_KW   : 'False' ;
+PY_NONE_KW    : 'None' ;
 
-PY_NUMBER   : '-'? Digit+ ('.' Digit+)? ;
-PY_ID       : [a-zA-Z_][a-zA-Z0-9_]* ;
+PY_IF         : 'if' ;
+PY_ELSE       : 'else' ;
+PY_FOR        : 'for' ;
+PY_IN         : 'in' ;
+PY_WHILE      : 'while' ;
 
-PY_WS    : [ \t\r]+         -> skip ;
-PY_LINE_COMMENT
-         : '#' ~[\r\n]*     -> skip ;
+PY_AND        : 'and' ;
+PY_OR         : 'or' ;
+PY_NOT        : 'not' ;
+
+PY_PLUS       : '+' ;
+PY_MINUS      : '-' ;
+PY_STAR       : '*' ;
+PY_DIV        : '/' ;
+PY_ASSIGN     : '=' ;
+PY_COLON      : ':' ;
+PY_COMMA      : ',' ;
+PY_DOT        : '.' ;
+
+PY_LPAREN     : '(' ;
+PY_RPAREN     : ')' ;
+PY_LBRACE     : '{' ;
+PY_RBRACE     : '}' ;
+PY_LBRACK     : '[' ;
+PY_RBRACK     : ']' ;
+
+PY_NUMBER     : '-'? Digit+ ('.' Digit+)? ;
+PY_ID         : [a-zA-Z_][a-zA-Z0-9_]* ;
+
+PY_STRING     : '\'' ( ~['\\] | '\\' . )* '\''   
+              | '"' ( ~["\\] | '\\' . )* '"'
+              ;
+
+PY_WS         : [ \t\r\n]+ -> skip ;
+PY_LINE_COMMENT : '#' ~[\r\n]* -> skip ;
