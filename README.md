@@ -55,14 +55,14 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `BLOCK_DELIMITER`   | `';'`|
 | `VALUE_DELIMITER`   | `','`|
 | `ASSIGN`            | `':'`|
-| `AXIS1`             | `'axis1'   | 'x' | 'X'`|
-| `AXIS2`             | `'axis2' | 'y' | 'Y'`|
+| `AXIS1`             | `'axis1', 'x', 'X'`|
+| `AXIS2`             | `'axis2', 'y', 'Y'`|
 | `COLOR`             | `'color'`|
 | `OUTPUT`            | `'output'`|
-| `ARRANGE`           | 	`'arrange'`|
+| `ARRANGE`           | `'arrange'`|
 | `INPUT`             | `'input'`| 
-| `AXIS1_SCALE`       | `'axis1-scale' | 'x-scale' | 'X-scale'`|
-| `AXIS2_SCALE`       | `'axis2-scale' | 'y-scale' | 'Y-scale'`|
+| `AXIS1_SCALE`       | `'axis1-scale', 'x-scale', 'X-scale'`|
+| `AXIS2_SCALE`       | `'axis2-scale', 'y-scale', 'Y-scale'`|
 | `FUNC`              | `'func'`|
 | `FIRST`             | `'first'`|
 | `LAST`              | `'last'`|
@@ -70,12 +70,12 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `EXPORT`            | `'export'`|
 | `CPP_FUNC_START`    | `'$CPP$'`|
 | `PY_FUNC_START`     | `'$PY$'`|
-| `STRING`            | `'\'' (Character | SpecialChar)* '\''`|
+| `STRING`            | `'\'' (Character, SpecialChar)* '\''`|
 | `NUMBER`            | `'-'? Digit+ ('.' Digit+)? 'f'?`|
 | `ID`                | `'[a-zA-Z][a-zA-Z0-9_-]*'`|
 | `Letter`            | `'[a-zA-Z]'`|
 | `Digit`             | `'[0-9]'`|
-| `Character`         |  `'Letter | Digit | '_' | '-''` |
+| `Character`         |  `'Letter, Digit, '_', '-''` |
 | `SpecialChar`       | `[,.!@#$%^&()+={}`'~]`|
 | `WS`                | `'[\\t\\r\\n]+'`|
 ### Embedded CPP function tokens
