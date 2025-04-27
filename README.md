@@ -102,7 +102,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `CPP_FOR`         | `'for'`                     |
 | `CPP_RETURN`      | `'return'`                  |
 | `CPP_AND`         | `'&&'`                      |
-| `CPP_OR`          | `'||'`                      |
+| `CPP_OR`          | `'\||'`                      |
 | `CPP_NOT`         | `'!'`                       |
 | `CPP_TRUE_KW`     | `'true'`                    |
 | `CPP_FALSE_KW`    | `'false'`                   |
