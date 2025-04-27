@@ -44,26 +44,40 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ### PlotScript tokens
 
-| Token           | Description                                               |
+| Token           | Opis                                               |
 |------------------|------------------------------------------------------------|
-| *`yourVarName`*  | A user-defined variable that holds a plot definition     |
-| `{`, `}`         | Block delimiters for plot definitions                      |
-| `:`              | Assignment operator                                        |
-| `[`, `]`         | List of values (arrays)                                    |
-| `output`         | File path for output image keyword                         |
-| `axis1`, `axis2` | Plot axes                                                  |
-| `arrange(...)`   | Function to generate a numeric range                       |
-| `func(...)`      | Embedded function definition                               |
-| `input(...)`     | Function to load data from a file                          |
-| `axis-scale(...)`| Axis scaling configuration                                 |
-| `color`          | Line color for the plot                                    |
-| `export(...)`    | Export one or more plots to output                         |
-| `language(...)`  | Specifies the language of the embedded function (e.g., C++)|
-| `first(...)`, `last(...)`, `step(...)` | Parameters for defining ranges       |
-| `'...'`          | String value (for defining file path, color etc.)          |
-| `$'CPP'$...$$`    | Multiline Block of Embedded CPP function                 |
-| `$'PY'$...$$`     | Multiline Block of Embedded PY function                 |
-
+| `PLOT_LBRACKET`     | `'{'`|
+| `PLOT_RBRACKET`     | `'}'`|
+| `LIST_LBRACKET`     | `'['`|
+| `LIST_RBRACKET`     | `']'`|
+| `FUNC_CALL_LBRACKET`|`'('`|
+| `FUNC_CALL_RBRACKET`| `')'`|
+| `BLOCK_DELIMITER`   | `';'`|
+| `VALUE_DELIMITER`   | `','`|
+| `ASSIGN`            | `':'`|
+| `AXIS1`             | `'axis1'   | 'x' | 'X'`|
+| `AXIS2`             | `'axis2' | 'y' | 'Y'`|
+| `COLOR`             | `'color'`|
+| `OUTPUT`            | `'output'`|
+| `ARRANGE`           | 	`'arrange'`|
+| `INPUT`             | `'input'`| 
+| `AXIS1_SCALE`       | `'axis1-scale' | 'x-scale' | 'X-scale'`|
+| `AXIS2_SCALE`       | `'axis2-scale' | 'y-scale' | 'Y-scale'`|
+| `FUNC`              | `'func'`|
+| `FIRST`             | `'first'`|
+| `LAST`              | `'last'`|
+| `STEP`              | `'step'`|
+| `EXPORT`            | `'export'`|
+| `CPP_FUNC_START`    | `'$CPP$'`|
+| `PY_FUNC_START`     | `'$PY$'`|
+| `STRING`            | `'\'' (Character | SpecialChar)* '\''`|
+| `NUMBER`            | `'-'? Digit+ ('.' Digit+)? 'f'?`|
+| `ID`                | `'[a-zA-Z][a-zA-Z0-9_-]*'`|
+| `Letter`            | `'[a-zA-Z]'`|
+| `Digit`             | `'[0-9]'`|
+| `Character`         |  `'Letter | Digit | '_' | '-''` |
+| `SpecialChar`       | `[,.!@#$%^&()+={}`'~]`|
+| `WS`                | `'[\\t\\r\\n]+'`|
 ### Embedded CPP function tokens
 
 | Token             | Opis                        |
