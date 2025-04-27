@@ -4,23 +4,49 @@ lexer grammar PlotScriptLexer;
   Lexer default (PlotScript)
   ─────────────────────────*/
 
-CPP : 'CPP' ;
-PY : 'PY' ;
+PLOT_LBRACKET  : '{';
+PLOT_RBRACKET : '}';
+LIST_LBRACKET : '[';
+LIST_RBRACKET : ']';
+FUNC_CALL_LBRACKET : '(';
+FUNC_CALL_RBRACKET : ')';
+BLOCK_DELIMITER    : ';';
+VALUE_DELIMITER   : ',';
+ASSIGN   : ':' ;
 
-FUNC_CPP_START : '$CPP$' -> pushMode(FUNC_CPP) ;
-FUNC_PY_START : '$PY$' -> pushMode(FUNC_PY) ;
 
-FUNC_END       : '$$' ;
 
-String     : '\'' Character* '\'' ;
-Number     : '-'? Digit+ ('.' Digit+)? ;
-Identifier : Letter Character* ;
+AXIS1 : 'axis1' | 'x' | 'X';
+AXIS2 : 'axis2' | 'y' | 'Y';
+COLOR : 'color' ;
+OUTPUT : 'output' ;
+ARRANGE : 'arrange' ;
+INPUT : 'input' ;
+AXIS1_SCALE : 'axis1-scale' | 'x-scale' | 'X-scale' ;
+AXIS2_SCALE : 'axis2-scale' | 'y-scale' | 'Y-scale' ;
+FUNC : 'func' ;
+
+FIRST : 'first' ;
+LAST : 'last' ;
+STEP : 'step' ;
+
+EXPORT : 'export' ;
+
+
+
+CPP_FUNC_START : '$CPP$'  -> pushMode(FUNC_CPP) ;
+PY_FUNC_START : '$PY$'  -> pushMode(FUNC_PY) ;
+
+STRING    : '\'' (Character | SpecialChar)* '\'' ;
+NUMBER     : '-'? Digit+ ('.' Digit+)? 'f'? ;
+ID : Letter Character* ;
 
 fragment Letter    : [a-zA-Z] ;
 fragment Digit     : [0-9] ;
 fragment Character : Letter | Digit | '_' | '-' ;
+fragment SpecialChar : [,.!@#$%^&()+={}`'~] ;
 
-Whitespace : [ \t\r\n]+ -> skip ;
+WS : [ \t\r\n]+ -> skip ;
 
 /*─────────────────────────
   Lexer MODE for embedded C++ code
@@ -28,69 +54,77 @@ Whitespace : [ \t\r\n]+ -> skip ;
 
 mode FUNC_CPP;
 
-FUNC_END   : '$$' -> popMode ;
+CPP_FUNC_END   : '$$' -> popMode ;
 
-TYPE_INT      : 'int';
-TYPE_DOUBLE   : 'double' | 'float';
-TYPE_BOOL     : 'bool';
-TYPE_VOID     : 'void';
+CPP_TYPE_INT : 'int' ;
+CPP_TYPE_DOUBLE : 'double' | 'float' ;
+CPP_TYPE_BOOL : 'bool' ;
+CPP_TYPE_VOID : 'void' ;
 
-PLUS    : '+';    MINUS  : '-';
-STAR    : '*';    DIV    : '/';
-ASSIGN  : '=';
-COMMA   : ',';
-SEMI    : ';';
-LPAREN  : '(';    RPAREN : ')';
-LBRACE  : '{';    RBRACE : '}';
+CPP_PLUS    : '+' ;
+CPP_MINUS  : '-' ;
+CPP_STAR    : '*' ;
+CPP_DIV    : '/' ;
+CPP_ASSIGN  : '=' ;
+CPP_COMMA   : ',' ;
+CPP_SEMI    : ';' ;
+CPP_LPAREN  : '(' ;
+CPP_RPAREN : ')' ;
+CPP_LBRACE  : '{' ;
+CPP_RBRACE : '}' ;
 
-IF      : 'if';
-ELSE    : 'else';
-FOR     : 'for';
-RETURN  : 'return';
+CPP_IF      : 'if' ;
+CPP_ELSE    : 'else' ;
+CPP_FOR     : 'for' ;
+CPP_RETURN  : 'return' ;
 
-AND     : '&&';
-OR      : '||';
-NOT     : '!';
+CPP_AND     : '&&' ;
+CPP_OR      : '||' ;
+CPP_NOT     : '!' ;
 
-NUMBER  : '-'? Digit+ ('.' Digit+)? ;
-ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
+CPP_NUMBER  : '-'? Digit+ ('.' Digit+)? ;
+CPP_ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
 
-TRUE_KW  : 'true' ;
-FALSE_KW : 'false' ;
+CPP_TRUE_KW  : 'true' ;
+CPP_FALSE_KW : 'false' ;
 
-WS_FUNC : [ \t\r\n]+       -> skip ;
-LINE_COMMENT
+CPP_WS : [ \t\r\n]+        -> skip ;
+CPP_LINE_COMMENT
         : '//' ~[\r\n]*    -> skip ;
-BLOCK_COMMENT
+CPP_BLOCK_COMMENT
         : '/*' .*? '*/'    -> skip ;
 
 /*─────────────────────────
   Lexer MODE for embedded Python code
   ─────────────────────────*/
+// TODO
 
 mode FUNC_PY;
 
-FUNC_END   : '$$' -> popMode ;
+// PY_FUNC_END   : '$$' -> popMode ;
 
-DEF      : 'def';
-IMPORT   : 'import';
-AS       : 'as';
-PASS     : 'pass';
-TRUE_KW  : 'True';
-FALSE_KW : 'False';
-NONE_KW  : 'None';
+PY_DEF      : 'def' ;
+PY_IMPORT   : 'import' ;
+PY_AS       : 'as' ;
+PY_PASS     : 'pass' ;
+PY_TRUE_KW  : 'True' ;
+PY_FALSE_KW : 'False' ;
+PY_NONE_KW  : 'None' ;
 
-COLON    : ':' ;
-PLUS     : '+' ; MINUS : '-' ;
-STAR     : '*' ; DIV   : '/' ;
-ASSIGN   : '=' ;
-LPAREN   : '(' ; RPAREN : ')' ;
-COMMA    : ',' ;
-NEWLINE  : '\r'? '\n' -> skip ;
+PY_COLON    : ':' ;
+PY_PLUS     : '+' ;
+PY_MINUS : '-' ;
+PY_STAR     : '*' ;
+PY_DIV   : '/' ;
+PY_ASSIGN   : '=' ;
+PY_LPAREN   : '(' ;
+PY_RPAREN : ')' ;
+PY_COMMA    : ',' ;
+// PY_NEWLINE  : '\r'? '\n' -> skip ;
 
-NUMBER   : '-'? Digit+ ('.' Digit+)? ;
-ID       : [a-zA-Z_][a-zA-Z0-9_]* ;
+PY_NUMBER   : '-'? Digit+ ('.' Digit+)? ;
+PY_ID       : [a-zA-Z_][a-zA-Z0-9_]* ;
 
-WS_PY    : [ \t\r]+         -> skip ;
-LINE_COMMENT_PY
+PY_WS    : [ \t\r]+         -> skip ;
+PY_LINE_COMMENT
          : '#' ~[\r\n]*     -> skip ;

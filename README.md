@@ -40,6 +40,8 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ## Token Overview
 
+[antlr4 file with lekser](PlotScriptLexer.g4)
+
 ### PlotScript tokens
 
 | Token           | Description                                               |
@@ -64,32 +66,37 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ### Embedded CPP function tokens
 
-| Token       | Opis                      |
-|-------------|---------------------------|
-| `TYPE_INT`    | `'int'`                     |
-| `TYPE_DOUBLE` | `'double' \| 'float'`       |
-| `TYPE_BOOL`   | `'bool'`                    |
-| `TYPE_VOID`   | `'void'`                    |
-| `PLUS`        | `'+'`                       |
-| `MINUS`       | `'-'`                       |
-| `STAR`        | `'*'`                       |
-| `DIV`         | `'/'`                       |
-| `ASSIGN`      | `'='`                       |
-| `COMMA`       | `','`                       |
-| `SEMI`        | `';'`                      |
-| `LPAREN`      | `'('`                       |
-| `LBRACE`      | `'['`                       |
-| `RPAREN`      | `')'`                       |
-| `RBRACE`      | `']'`                       |
-| `IF`          | `'if'`                      |
-| `ELSE`        | `'else'`                    |
-| `FOR`         | `'for'`                     |
-| `RETURN`      | `'return'`                  |
-| `NUMBER`      | `'-'? Digit+ ('.' Digit+)?` |
-| `ID`          | `[a-zA-Z_][a-zA-Z0-9_]*`    |
+| Token             | Opis                        |
+|-------------------|-----------------------------|
+| `CPP_TYPE_INT`    | `'int'`                     |
+| `CPP_TYPE_DOUBLE` | `'double' \| 'float'`       |
+| `CPP_TYPE_BOOL`   | `'bool'`                    |
+| `CPP_TYPE_VOID`   | `'void'`                    |
+| `CPP_PLUS`        | `'+'`                       |
+| `CPP_MINUS`       | `'-'`                       |
+| `CPP_STAR`        | `'*'`                       |
+| `CPP_DIV`         | `'/'`                       |
+| `CPP_ASSIGN`      | `'='`                       |
+| `CPP_COMMA`       | `','`                       |
+| `CPP_SEMI`        | `';'`                       |
+| `CPP_LPAREN`      | `'('`                       |
+| `CPP_LBRACE`      | `'{'`                       |
+| `CPP_RPAREN`      | `')'`                       |
+| `CPP_RBRACE`      | `'}'`                       |
+| `CPP_IF`          | `'if'`                      |
+| `CPP_ELSE`        | `'else'`                    |
+| `CPP_FOR`         | `'for'`                     |
+| `CPP_RETURN`      | `'return'`                  |
+| `CPP_AND`         | `'&&'`                      |
+| `CPP_OR`          | `'||'`                      |
+| `CPP_NOT`         | `'!'`                       |
+| `CPP_TRUE_KW`     | `'true'`                    |
+| `CPP_FALSE_KW`    | `'false'`                   |
+| `CPP_NUMBER`      | `'-'? Digit+ ('.' Digit+)?` |
+| `CPP_ID`          | `[a-zA-Z_][a-zA-Z0-9_]*`    |
 
-### Embedded PY function tokens
-
+### Embedded PY function tokens (WORK IN PROGRESS)
+<!-- 
 | Token              | Opis        |
 |--------------------|----------------------------------------------|
 | `DEF`              | `'def'`                                      |
@@ -112,7 +119,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `NUMBER`           | `'-'? Digit+ ('.' Digit+)?`                  |
 | `ID`               | `[a-zA-Z_][a-zA-Z0-9_]*`                     |
 | `WS_PY`            | `[ \\t\\r]+`        |
-| `LINE_COMMENT_PY`  | `'#' ~[\\r\\n]*` |
+| `LINE_COMMENT_PY`  | `'#' ~[\\r\\n]*` | -->
 
 ## Example PlotScript Code
 
@@ -126,7 +133,7 @@ plot1{
 wykres2{
     axis1: arrange(first(0), last(10), step(0.5f)); 
     axis2: func(
-        $'CPP'$
+        $CPP$
         double f(double x){
             return x*x;
         }
@@ -137,15 +144,30 @@ wykres2{
 
 my_plot3{ 
     output: 'my_output3.png';
-    axis1: [input('X1.txt'), axis-scale(first(-100), last(100))];
+    axis1: input('X1.txt');
+    axis1-scale: arrange(first(-100), last(100));
     axis2: input('Y.txt');
     color: '#FF0000';
 }
 
+ex4{
+    axis1: arrange(first(0), last(10), step(0.5f)); 
+    axis2: func(
+        $CPP$
+        double f(double x){
+            int b = x * 2 + 6;
+            return b*x/1.5;
+        }
+        $$
+    );
+    output: 'output2.png';
+}
+
+// EMBEDDED PYTHON FUNCTIONS - WORK IN PROGRESS
 sinePy{
     axis1: arrange(first(-6.28), last(6.28), step(0.05));
     axis2: func(
-        $'PY'$
+        $PY$
         import math
         def f(x: float) -> float:
             return math.sin(x)
@@ -155,10 +177,7 @@ sinePy{
     output: 'py_sine.png';
 }
 
-export(plot1, wykres2, my_plot3, sinePy);
+export(plot1, wykres2, my_plot3, sinePy)
 ```
 ## Grammar
-[.g4 file with grammar](PlotScript.g4)
-
-[.g4 file with lekser](PlotScriptLexer.g4)
-                                                                                                                                            
+[antlr4 file with grammar](PlotScriptParser.g4)
