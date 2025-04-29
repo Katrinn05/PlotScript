@@ -95,67 +95,7 @@ cpp_expr         : cpp_expr (CPP_PLUS | CPP_MINUS | CPP_STAR | CPP_DIV) cpp_expr
 /*─────────────
   Embedded Python code
   ─────────────*/
-pyEmbeddedFunctionBlock
-    : PY_FUNC_START py_funcDef PY_FUNC_END
-    ;
-
-py_funcDef
-    : PY_DEF PY_ID PY_LPAREN py_paramList? PY_RPAREN PY_COLON py_funcBody
-    ;
-
-py_paramList
-    : PY_ID (PY_COMMA PY_ID)*
-    ;
-
-py_funcBody
-    : PY_LBRACE py_statement* PY_RBRACE
-    ;
-
-py_statement
-    : py_varAssign PY_COLON
-    | py_return PY_COLON
-    | py_ifStatement
-    | py_forStatement
-    | py_whileStatement
-    | py_expr PY_COLON
-    ;
-
-py_varAssign
-    : PY_ID PY_ASSIGN py_expr
-    ;
-
-py_return
-    : PY_RETURN py_expr?
-    ;
-
-py_ifStatement
-    : PY_IF py_expr PY_COLON py_funcBody (PY_ELSE PY_COLON py_funcBody)?
-    ;
-
-py_forStatement
-    : PY_FOR PY_ID PY_IN py_expr PY_COLON py_funcBody
-    ;
-
-py_whileStatement
-    : PY_WHILE py_expr PY_COLON py_funcBody
-    ;
-
-py_expr
-    : py_expr PY_PLUS py_expr
-    | py_expr PY_MINUS py_expr
-    | py_expr PY_STAR py_expr
-    | py_expr PY_DIV py_expr
-    | PY_LPAREN py_expr PY_RPAREN
-    | PY_ID
-    | PY_NUMBER
-    | PY_STRING
-    | PY_TRUE_KW
-    | PY_FALSE_KW
-    | PY_NONE_KW
-    | PY_NOT py_expr
-    | py_expr PY_AND py_expr
-    | py_expr PY_OR py_expr
-    ;
+//TODO
 
 
 /*────────────
