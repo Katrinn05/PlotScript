@@ -4,9 +4,9 @@ options{
   tokenVocab=PlotScriptLexer;
 }
 
-/*──────────────────────────
+/*─────────────────────────
   Parser rules – PlotScript
-  ──────────────────────────*/
+  ─────────────────────────*/
 
 program          : plotDefinition* exportStatement? EOF ;
 
@@ -39,9 +39,9 @@ rangeArgs        : FIRST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET VALUE_DELI
                    STEP FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET
                  ;
 
-/*─────────────
+/*─────────────────────────
   Embedded C++ code
-  ─────────────*/
+  ─────────────────────────*/
 
 embeddedFunctionBlock  : C_FUNC_START c_funcDeclaration C_FUNC_END ;
 
@@ -112,14 +112,8 @@ c_expr         : c_expr (C_TOKEN_PLUS | C_TOKEN_MINUS | C_TOKEN_STAR | C_TOKEN_D
                  | C_TOKEN_FALSE_KW
                  ;
 
-/*─────────────
-  Embedded Python code
-  ─────────────*/
-//TODO
-
-
-/*────────────
+/*─────────────────────────
   Export
-  ────────────*/
+  ─────────────────────────*/
 
 exportStatement : EXPORT FUNC_CALL_LBRACKET plotName (VALUE_DELIMITER plotName)* FUNC_CALL_RBRACKET ;

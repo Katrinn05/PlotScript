@@ -14,8 +14,6 @@ BLOCK_DELIMITER    : ';';
 VALUE_DELIMITER   : ',';
 ASSIGN   : ':' ;
 
-
-
 AXIS1 : 'axis1' | 'x' | 'X';
 AXIS2 : 'axis2' | 'y' | 'Y';
 COLOR : 'color' ;
@@ -32,10 +30,7 @@ STEP : 'step' ;
 
 EXPORT : 'export' ;
 
-
-
 C_FUNC_START : '$CPP$'  -> pushMode(FUNC_C) ;
-PY_FUNC_START : '$PY$'  -> pushMode(FUNC_PY) ;
 
 STRING    : '\'' (Character | SpecialChar)* '\'' ;
 NUMBER     : '-'? Digit+ ('.' Digit+)? 'f'? ;
@@ -110,10 +105,4 @@ C_LINE_COMMENT
 C_BLOCK_COMMENT
         : '/*' .*? '*/'    -> skip ;
 
-/*─────────────────────────
-  Lexer MODE for embedded Python code
-  ─────────────────────────*/
-mode FUNC_PY;
-
-PY_FUNC_END   : '$$' -> popMode ;
-// TODO
+/*─────────────────────────*/
