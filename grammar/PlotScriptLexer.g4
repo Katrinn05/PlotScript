@@ -4,33 +4,33 @@ lexer grammar PlotScriptLexer;
   Lexer default (PlotScript)
   ─────────────────────────*/
 
-PLOT_LBRACKET  : '{';
-PLOT_RBRACKET : '}';
-LIST_LBRACKET : '[';
-LIST_RBRACKET : ']';
-FUNC_CALL_LBRACKET : '(';
-FUNC_CALL_RBRACKET : ')';
-BLOCK_DELIMITER    : ';';
-VALUE_DELIMITER   : ',';
-ASSIGN   : ':' ;
+TOKEN_PLOT_LBRACKET  : '{';
+TOKEN_PLOT_RBRACKET : '}';
+TOKEN_LIST_LBRACKET : '[';
+TOKEN_LIST_RBRACKET : ']';
+TOKEN_FUNC_CALL_LBRACKET : '(';
+TOKEN_FUNC_CALL_RBRACKET : ')';
+TOKEN_BLOCK_DELIMITER    : ';';
+TOKEN_VALUE_DELIMITER   : ',';
+TOKEN_ASSIGN   : ':' ;
 
-AXIS1 : 'axis1' | 'x' | 'X';
-AXIS2 : 'axis2' | 'y' | 'Y';
-COLOR : 'color' ;
-OUTPUT : 'output' ;
-ARRANGE : 'arrange' ;
-INPUT : 'input' ;
-AXIS1_SCALE : 'axis1-scale' | 'x-scale' | 'X-scale' ;
-AXIS2_SCALE : 'axis2-scale' | 'y-scale' | 'Y-scale' ;
-FUNC : 'func' ;
+TOKEN_AXIS1 : 'axis1' | 'x' | 'X';
+TOKEN_AXIS2 : 'axis2' | 'y' | 'Y';
+TOKEN_COLOR : 'color' ;
+TOKEN_OUTPUT : 'output' ;
+TOKEN_ARRANGE : 'arrange' ;
+TOKEN_INPUT : 'input' ;
+TOKEN_AXIS1_SCALE : 'axis1-scale' | 'x-scale' | 'X-scale' ;
+TOKEN_AXIS2_SCALE : 'axis2-scale' | 'y-scale' | 'Y-scale' ;
+TOKEN_FUNC : 'func' ;
 
-FIRST : 'first' ;
-LAST : 'last' ;
-STEP : 'step' ;
+TOKEN_FIRST : 'first' ;
+TOKEN_LAST : 'last' ;
+TOKEN_STEP : 'step' ;
 
-EXPORT : 'export' ;
+TOKEN_EXPORT : 'export' ;
 
-C_FUNC_START : '$CPP$'  -> pushMode(FUNC_C) ;
+TOKEN_C_FUNC_START : '$CPP$'  -> pushMode(FUNC_C) ;
 
 STRING    : '\'' (Character | SpecialChar)* '\'' ;
 NUMBER     : '-'? Digit+ ('.' Digit+)? 'f'? ;
@@ -39,7 +39,7 @@ ID : Letter Character* ;
 fragment Letter    : [a-zA-Z] ;
 fragment Digit     : [0-9] ;
 fragment Character : Letter | Digit | '_' | '-' ;
-fragment SpecialChar : [,.!@#$%^&()+={}`'~] ;
+fragment SpecialChar : [,.!@#$%^&()+={}"'~] ;
 
 WS : [ \t\r\n]+ -> skip ;
 

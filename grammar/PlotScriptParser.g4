@@ -13,37 +13,37 @@ program          : plotDefinition* exportStatement? EOF ;
 plotDefinition   : plotName plotBlock ;
 plotName         : ID ;
 
-plotBlock        : PLOT_LBRACKET plotStatement* PLOT_RBRACKET ;
-plotStatement    : plotFunctionIdentifier ASSIGN expression BLOCK_DELIMITER ;
+plotBlock        : TOKEN_PLOT_LBRACKET plotStatement* TOKEN_PLOT_RBRACKET ;
+plotStatement    : plotFunctionIdentifier TOKEN_ASSIGN expression TOKEN_BLOCK_DELIMITER ;
 
 plotFunctionIdentifier
-                 : AXIS1 | AXIS2 | COLOR | OUTPUT | AXIS1_SCALE | AXIS2_SCALE ;
+                 : TOKEN_AXIS1 | TOKEN_AXIS2 | TOKEN_COLOR | TOKEN_OUTPUT | TOKEN_AXIS1_SCALE | TOKEN_AXIS2_SCALE ;
 
 expression       : value | list | functionCall ;
 value            : STRING | NUMBER | ID ;
-list             : LIST_LBRACKET (value (VALUE_DELIMITER value)*) LIST_RBRACKET ;
+list             : TOKEN_LIST_LBRACKET (value (TOKEN_VALUE_DELIMITER value)*) TOKEN_LIST_RBRACKET ;
 
-functionCall     : ARRANGE FUNC_CALL_LBRACKET rangeArgs FUNC_CALL_RBRACKET
-                 | stringLikeFunction  FUNC_CALL_LBRACKET stringLikeFunctionParam FUNC_CALL_RBRACKET
-                 | FUNC FUNC_CALL_LBRACKET embeddedFunctionBlock FUNC_CALL_RBRACKET
+functionCall     : TOKEN_ARRANGE TOKEN_FUNC_CALL_LBRACKET rangeArgs TOKEN_FUNC_CALL_RBRACKET
+                 | stringLikeFunction  TOKEN_FUNC_CALL_LBRACKET stringLikeFunctionParam TOKEN_FUNC_CALL_RBRACKET
+                 | TOKEN_FUNC TOKEN_FUNC_CALL_LBRACKET embeddedFunctionBlock TOKEN_FUNC_CALL_RBRACKET
                  ;
 
-stringLikeFunction  : INPUT ;
+stringLikeFunction  : TOKEN_INPUT ;
 stringLikeFunctionParam : STRING ;
 
 
-rangeArgs        : FIRST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET VALUE_DELIMITER
-                   LAST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET 
-                 | FIRST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET VALUE_DELIMITER
-                   LAST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET VALUE_DELIMITER
-                   STEP FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET
+rangeArgs        : TOKEN_FIRST TOKEN_FUNC_CALL_LBRACKET NUMBER TOKEN_FUNC_CALL_RBRACKET TOKEN_VALUE_DELIMITER
+                   TOKEN_LAST TOKEN_FUNC_CALL_LBRACKET NUMBER TOKEN_FUNC_CALL_RBRACKET 
+                 | TOKEN_FIRST TOKEN_FUNC_CALL_LBRACKET NUMBER TOKEN_FUNC_CALL_RBRACKET TOKEN_VALUE_DELIMITER
+                   TOKEN_LAST TOKEN_FUNC_CALL_LBRACKET NUMBER TOKEN_FUNC_CALL_RBRACKET TOKEN_VALUE_DELIMITER
+                   TOKEN_STEP TOKEN_FUNC_CALL_LBRACKET NUMBER TOKEN_FUNC_CALL_RBRACKET
                  ;
 
 /*─────────────────────────
   Embedded C++ code
   ─────────────────────────*/
 
-embeddedFunctionBlock  : C_FUNC_START c_funcDeclaration C_FUNC_END ;
+embeddedFunctionBlock  : TOKEN_C_FUNC_START c_funcDeclaration C_FUNC_END ;
 
 c_funcDeclaration
                  : c_funcReturnType C_ID C_TOKEN_LPAREN c_paramList? C_TOKEN_RPAREN c_funcBody
@@ -116,4 +116,4 @@ c_expr         : c_expr (C_TOKEN_PLUS | C_TOKEN_MINUS | C_TOKEN_STAR | C_TOKEN_D
   Export
   ─────────────────────────*/
 
-exportStatement : EXPORT FUNC_CALL_LBRACKET plotName (VALUE_DELIMITER plotName)* FUNC_CALL_RBRACKET ;
+exportStatement : TOKEN_EXPORT TOKEN_FUNC_CALL_LBRACKET plotName (TOKEN_VALUE_DELIMITER plotName)* TOKEN_FUNC_CALL_RBRACKET ;

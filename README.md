@@ -22,14 +22,14 @@ The program will be implemented as an **interpreter**, which analyzes and execut
 The PlotScript interpreter will:
 - Generate 2D charts from arrays or function expressions,
 - Import data from external files,
-- Allow embedding of user-defined mathematical functions in C++ and Python,
+- Allow embedding of user-defined mathematical functions in C,
 - Export plots to image files (e.g., PNG),
 - Support grouped exporting of multiple plots,
 - Provide simple customization options (e.g., axis scale, color).
 
 ### Implementation Language
 The interpreter will be implemented in **C++**, using the following tools and libraries:
-- `to be determined =(` for rendering plots / images,
+- `to be determined` for rendering plots / images,
 - `ANTLR 4` for lexer and parser generation,
 - `Standard C++ STL` for data handling and execution logic.
 
@@ -44,96 +44,84 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ### PlotScript tokens
 
-| Token           | Opis                                               |
-|------------------|------------------------------------------------------------|
-| `PLOT_LBRACKET`     | `'{'`|
-| `PLOT_RBRACKET`     | `'}'`|
-| `LIST_LBRACKET`     | `'['`|
-| `LIST_RBRACKET`     | `']'`|
-| `FUNC_CALL_LBRACKET`|`'('`|
-| `FUNC_CALL_RBRACKET`| `')'`|
-| `BLOCK_DELIMITER`   | `';'`|
-| `VALUE_DELIMITER`   | `','`|
-| `ASSIGN`            | `':'`|
-| `AXIS1`             | `'axis1', 'x', 'X'`|
-| `AXIS2`             | `'axis2', 'y', 'Y'`|
-| `COLOR`             | `'color'`|
-| `OUTPUT`            | `'output'`|
-| `ARRANGE`           | `'arrange'`|
-| `INPUT`             | `'input'`| 
-| `AXIS1_SCALE`       | `'axis1-scale', 'x-scale', 'X-scale'`|
-| `AXIS2_SCALE`       | `'axis2-scale', 'y-scale', 'Y-scale'`|
-| `FUNC`              | `'func'`|
-| `FIRST`             | `'first'`|
-| `LAST`              | `'last'`|
-| `STEP`              | `'step'`|
-| `EXPORT`            | `'export'`|
-| `CPP_FUNC_START`    | `'$CPP$'`|
-| `PY_FUNC_START`     | `'$PY$'`|
-| `STRING`            | `'\'' (Character, SpecialChar)* '\''`|
-| `NUMBER`            | `'-'? Digit+ ('.' Digit+)? 'f'?`|
-| `ID`                | `'[a-zA-Z][a-zA-Z0-9_-]*'`|
-| `Letter`            | `'[a-zA-Z]'`|
-| `Digit`             | `'[0-9]'`|
-| `Character`         |  `'Letter, Digit, '_', '-''` |
-| `SpecialChar`       | `[,.!@#$%^&()+={}`'~]`|
-| `WS`                | `'[\\t\\r\\n]+'`|
-### Embedded CPP function tokens
+| Token               | Opis                                     |
+|---------------------|------------------------------------------|
+| `TOKEN_PLOT_LBRACKET`     | `'{'`|
+| `TOKEN_PLOT_RBRACKET`     | `'}'`|
+| `TOKEN_LIST_LBRACKET`     | `'['`|
+| `TOKEN_LIST_RBRACKET`     | `']'`|
+| `TOKEN_FUNC_CALL_LBRACKET`|`'('`|
+| `TOKEN_FUNC_CALL_RBRACKET`| `')'`|
+| `TOKEN_BLOCK_DELIMITER`   | `';'`|
+| `TOKEN_VALUE_DELIMITER`   | `','`|
+| `TOKEN_ASSIGN`            | `':'`|
+| `TOKEN_AXIS1`             | `'axis1', 'x', 'X'`|
+| `TOKEN_AXIS2`             | `'axis2', 'y', 'Y'`|
+| `TOKEN_COLOR`             | `'color'`|
+| `TOKEN_OUTPUT`            | `'output'`|
+| `TOKEN_ARRANGE`           | `'arrange'`|
+| `TOKEN_INPUT`             | `'input'`| 
+| `TOKEN_AXIS1_SCALE`       | `'axis1-scale', 'x-scale', 'X-scale'`|
+| `TOKEN_AXIS2_SCALE`       | `'axis2-scale', 'y-scale', 'Y-scale'`|
+| `TOKEN_FUNC`              | `'func'`|
+| `TOKEN_FIRST`             | `'first'`|
+| `TOKEN_LAST`              | `'last'`|
+| `TOKEN_STEP`              | `'step'`|
+| `TOKEN_EXPORT`            | `'export'`|
+| `TOKEN_C_FUNC_START`      | `'$CPP$'`|
+| `TOKEN_C_FUNC_END`        | `'$$'`|
+| `STRING`                  | `'\'' (Character, SpecialChar)* '\''`|
+| `NUMBER`                  | `'-'? Digit+ ('.' Digit+)? 'f'?`|
+| `ID`                      | `'[a-zA-Z][a-zA-Z0-9_-]*'`|
+| `Character (fragment)`    |  `'Letter, Digit, '_', '-''` |
+| `SpecialChar (fragment)`  | `[,.!@#$%^&()+={}'"~]`|
 
-| Token             | Opis                        |
-|-------------------|-----------------------------|
-| `CPP_TYPE_INT`    | `'int'`                     |
-| `CPP_TYPE_DOUBLE` | `'double' \| 'float'`       |
-| `CPP_TYPE_BOOL`   | `'bool'`                    |
-| `CPP_TYPE_VOID`   | `'void'`                    |
-| `CPP_PLUS`        | `'+'`                       |
-| `CPP_MINUS`       | `'-'`                       |
-| `CPP_STAR`        | `'*'`                       |
-| `CPP_DIV`         | `'/'`                       |
-| `CPP_ASSIGN`      | `'='`                       |
-| `CPP_COMMA`       | `','`                       |
-| `CPP_SEMI`        | `';'`                       |
-| `CPP_LPAREN`      | `'('`                       |
-| `CPP_LBRACE`      | `'{'`                       |
-| `CPP_RPAREN`      | `')'`                       |
-| `CPP_RBRACE`      | `'}'`                       |
-| `CPP_IF`          | `'if'`                      |
-| `CPP_ELSE`        | `'else'`                    |
-| `CPP_FOR`         | `'for'`                     |
-| `CPP_RETURN`      | `'return'`                  |
-| `CPP_AND`         | `'&&'`                      |
-| `CPP_OR`          | `'\|\|'`                      |
-| `CPP_NOT`         | `'!'`                       |
-| `CPP_TRUE_KW`     | `'true'`                    |
-| `CPP_FALSE_KW`    | `'false'`                   |
-| `CPP_NUMBER`      | `'-'? Digit+ ('.' Digit+)?` |
-| `CPP_ID`          | `[a-zA-Z_][a-zA-Z0-9_]*`    |
 
-### Embedded PY function tokens (WORK IN PROGRESS)
-<!-- 
-| Token              | Opis        |
-|--------------------|----------------------------------------------|
-| `DEF`              | `'def'`                                      |
-| `IMPORT`           | `'import'`          |
-| `AS`               | `'as'`             |
-| `PASS`             | `'pass'`                  |
-| `TRUE_KW`          | `'True'`             |
-| `FALSE_KW`         | `'False'`            |
-| `NONE_KW`          | `'None'`     |
-| `COLON`            | `':'`       |
-| `PLUS`             | `'+'`                                        |
-| `MINUS`            | `'-'`                                        |
-| `STAR`             | `'*'`                                        |
-| `DIV`              | `'/'`                                        |
-| `ASSIGN`           | `'='`                                        |
-| `COMMA`            | `','`                                        |
-| `LPAREN`           | `'('`                                        |
-| `RPAREN`           | `')'`                                        |
-| `NEWLINE`          | `'\r'? '\n'`                |
-| `NUMBER`           | `'-'? Digit+ ('.' Digit+)?`                  |
-| `ID`               | `[a-zA-Z_][a-zA-Z0-9_]*`                     |
-| `WS_PY`            | `[ \\t\\r]+`        |
-| `LINE_COMMENT_PY`  | `'#' ~[\\r\\n]*` | -->
+### Embedded C function tokens
+
+| Token                 | Opis                        |
+|-----------------------|-----------------------------|
+| `C_TOKEN_TYPE_INT`    | `'int'`                     |
+| `C_TOKEN_TYPE_DOUBLE` | `'double' \| 'float'`       |
+| `C_TOKEN_TYPE_BOOL`   | `'bool'`                    |
+| `C_TOKEN_TYPE_VOID`   | `'void'`                    |
+| `C_TOKEN_PLUS`        | `'+'`                       |
+| `C_TOKEN_MINUS`       | `'-'`                       |
+| `C_TOKEN_STAR`        | `'*'`                       |
+| `C_TOKEN_DIV`         | `'/'`                       |
+| `C_TOKEN_ASSIGN`      | `'='`                       |
+| `C_TOKEN_COMMA`       | `','`                       |
+| `C_TOKEN_SEMI`        | `';'`                       |
+| `C_TOKEN_LPAREN`      | `'('`                       |
+| `C_TOKEN_LBRACE`      | `'{'`                       |
+| `C_TOKEN_RPAREN`      | `')'`                       |
+| `C_TOKEN_RBRACE`      | `'}'`                       |
+| `C_TOKEN_IF`          | `'if'`                      |
+| `C_TOKEN_ELSE`        | `'else'`                    |
+| `C_TOKEN_FOR`         | `'for'`                     |
+| `C_TOKEN_WHILE`       | `'while'`                   |
+| `C_TOKEN_DO`          | `'do'`                      |
+| `C_TOKEN_RETURN`      | `'return'`                  |
+| `C_TOKEN_AND`         | `'&&'`                      |
+| `C_TOKEN_OR`          | `'\|\|'`                    |
+| `C_TOKEN_NOT`         | `'!'`                       |
+| `C_TOKEN_GT`          | `'>'`                       |
+| `C_TOKEN_LT`          | `'<'`                       |
+| `C_TOKEN_GTE`         | `'>='`                      |
+| `C_TOKEN_LTE`         | `'<='`                      |
+| `C_TOKEN_EQ`          | `'=='`                      |
+| `C_TOKEN_NEQ`         | `'!='`                      |
+| `C_TOKEN_TRUE_KW`     | `'true'`                    |
+| `C_TOKEN_FALSE_KW`    | `'false'`                   |
+| `C_TOKEN_SQRT`        | `'sqrt'`                    |
+| `C_TOKEN_SIN`         | `'sin'`                     |
+| `C_TOKEN_COS`         | `'cos'`                     |
+| `C_TOKEN_TAN`         | `'tan'`                     |
+| `C_TOKEN_LOG`         | `'log'`                     |
+| `C_TOKEN_EXP`         | `'exp'`                     |
+| `C_NUMBER`            | `'-'? Digit+ ('.' Digit+)?` |
+| `C_ID`                | `[a-zA-Z_][a-zA-Z0-9_]*`    |
+
 
 ## Example PlotScript Code
 
@@ -177,21 +165,7 @@ ex4{
     output: 'output2.png';
 }
 
-// EMBEDDED PYTHON FUNCTIONS - WORK IN PROGRESS
-sinePy{
-    axis1: arrange(first(-6.28), last(6.28), step(0.05));
-    axis2: func(
-        $PY$
-        import math
-        def f(x: float) -> float:
-            return math.sin(x)
-        $$
-    );
-    color: '#3366FF';
-    output: 'py_sine.png';
-}
-
-export(plot1, wykres2, my_plot3, sinePy)
+export(plot1, wykres2, my_plot3)
 ```
 ## Grammar
 [antlr4 file with grammar](PlotScriptParser.g4)
