@@ -34,7 +34,7 @@ EXPORT : 'export' ;
 
 
 
-CPP_FUNC_START : '$CPP$'  -> pushMode(FUNC_CPP) ;
+C_FUNC_START : '$CPP$'  -> pushMode(FUNC_C) ;
 PY_FUNC_START : '$PY$'  -> pushMode(FUNC_PY) ;
 
 STRING    : '\'' (Character | SpecialChar)* '\'' ;
@@ -52,46 +52,62 @@ WS : [ \t\r\n]+ -> skip ;
   Lexer MODE for embedded C++ code
   ─────────────────────────*/
 
-mode FUNC_CPP;
+mode FUNC_C;
 
-CPP_FUNC_END   : '$$' -> popMode ;
+C_FUNC_END   : '$$' -> popMode ;
 
-CPP_TYPE_INT : 'int' ;
-CPP_TYPE_DOUBLE : 'double' | 'float' ;
-CPP_TYPE_BOOL : 'bool' ;
-CPP_TYPE_VOID : 'void' ;
+C_TOKEN_TYPE_INT : 'int' ;
+C_TOKEN_TYPE_DOUBLE : 'double' | 'float' ;
+C_TOKEN_TYPE_BOOL : 'bool' ;
+C_TOKEN_TYPE_VOID : 'void' ;
 
-CPP_PLUS    : '+' ;
-CPP_MINUS  : '-' ;
-CPP_STAR    : '*' ;
-CPP_DIV    : '/' ;
-CPP_ASSIGN  : '=' ;
-CPP_COMMA   : ',' ;
-CPP_SEMI    : ';' ;
-CPP_LPAREN  : '(' ;
-CPP_RPAREN : ')' ;
-CPP_LBRACE  : '{' ;
-CPP_RBRACE : '}' ;
+C_TOKEN_PLUS    : '+' ;
+C_TOKEN_MINUS  : '-' ;
+C_TOKEN_STAR    : '*' ;
+C_TOKEN_DIV    : '/' ;
+C_TOKEN_ASSIGN  : '=' ;
+C_TOKEN_COMMA   : ',' ;
+C_TOKEN_SEMI    : ';' ;
+C_TOKEN_LPAREN  : '(' ;
+C_TOKEN_RPAREN : ')' ;
+C_TOKEN_LBRACE  : '{' ;
+C_TOKEN_RBRACE : '}' ;
 
-CPP_IF      : 'if' ;
-CPP_ELSE    : 'else' ;
-CPP_FOR     : 'for' ;
-CPP_RETURN  : 'return' ;
+C_TOKEN_IF      : 'if' ;
+C_TOKEN_ELSE    : 'else' ;
+C_TOKEN_FOR     : 'for' ;
+C_TOKEN_WHILE   : 'while' ;
+C_TOKEN_DO      : 'do' ;
+C_TOKEN_RETURN  : 'return' ;
 
-CPP_AND     : '&&' ;
-CPP_OR      : '||' ;
-CPP_NOT     : '!' ;
+C_TOKEN_AND     : '&&' ;
+C_TOKEN_OR      : '||' ;
+C_TOKEN_NOT     : '!' ;
 
-CPP_NUMBER  : '-'? Digit+ ('.' Digit+)? ;
-CPP_ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
+C_TOKEN_LT      : '<' ;
+C_TOKEN_GT      : '>' ;
+C_TOKEN_LTE     : '<=' ;
+C_TOKEN_GTE     : '>=' ;
+C_TOKEN_EQ      : '==' ;
+C_TOKEN_NEQ     : '!=' ;
 
-CPP_TRUE_KW  : 'true' ;
-CPP_FALSE_KW : 'false' ;
+C_TOKEN_SQRT : 'sqrt' ;
+C_TOKEN_SIN  : 'sin' ;
+C_TOKEN_COS  : 'cos' ;
+C_TOKEN_TAN  : 'tan' ;
+C_TOKEN_LOG  : 'log' ;
+C_TOKEN_EXP  : 'exp' ;
 
-CPP_WS : [ \t\r\n]+        -> skip ;
-CPP_LINE_COMMENT
+C_NUMBER  : '-'? Digit+ ('.' Digit+)? ;
+C_ID      : [a-zA-Z_][a-zA-Z0-9_]* ;
+
+C_TOKEN_TRUE_KW  : 'true' ;
+C_TOKEN_FALSE_KW : 'false' ;
+
+C_WS : [ \t\r\n]+        -> skip ;
+C_LINE_COMMENT
         : '//' ~[\r\n]*    -> skip ;
-CPP_BLOCK_COMMENT
+C_BLOCK_COMMENT
         : '/*' .*? '*/'    -> skip ;
 
 /*─────────────────────────

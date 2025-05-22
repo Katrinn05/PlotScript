@@ -43,53 +43,73 @@ rangeArgs        : FIRST FUNC_CALL_LBRACKET NUMBER FUNC_CALL_RBRACKET VALUE_DELI
   Embedded C++ code
   ─────────────*/
 
-embeddedFunctionBlock  : CPP_FUNC_START cpp_funcDeclaration CPP_FUNC_END ;
+embeddedFunctionBlock  : C_FUNC_START c_funcDeclaration C_FUNC_END ;
 
-cpp_funcDeclaration
-                 : cpp_funcReturnType CPP_ID CPP_LPAREN cpp_paramList? CPP_RPAREN cpp_funcBody
+c_funcDeclaration
+                 : c_funcReturnType C_ID C_TOKEN_LPAREN c_paramList? C_TOKEN_RPAREN c_funcBody
                  ;
 
-cpp_funcReturnType
-                 : CPP_TYPE_VOID
-                 | cpp_typeSpecifier
+c_funcReturnType
+                 : C_TOKEN_TYPE_VOID
+                 | c_typeSpecifier
                  ;
 
-cpp_typeSpecifier
-                 : CPP_TYPE_INT
-                 | CPP_TYPE_DOUBLE
-                 | CPP_TYPE_BOOL
+c_typeSpecifier
+                 : C_TOKEN_TYPE_INT
+                 | C_TOKEN_TYPE_DOUBLE
+                 | C_TOKEN_TYPE_BOOL
                  ;
 
-cpp_paramList : cpp_parameter (CPP_COMMA cpp_parameter)* ;
-cpp_parameter : cpp_typeSpecifier CPP_ID ;
+c_mathFunction 
+                 : C_TOKEN_SQRT
+                 | C_TOKEN_SIN
+                 | C_TOKEN_COS
+                 | C_TOKEN_TAN
+                 | C_TOKEN_LOG
+                 | C_TOKEN_EXP
+                 ; 
 
-cpp_funcBody  : CPP_LBRACE cpp_funcStatement* CPP_RBRACE ;
+c_paramList : c_parameter (C_TOKEN_COMMA c_parameter)* ;
+c_parameter : c_typeSpecifier C_ID ;
 
-cpp_funcStatement
-                 : cpp_varDeclaration CPP_SEMI
-                 | cpp_assignment CPP_SEMI
-                 | cpp_return CPP_SEMI
-                 | cpp_controlStructure
+c_funcBody  : C_TOKEN_LBRACE c_funcStatement* C_TOKEN_RBRACE ;
+
+c_funcStatement
+                 : c_varDeclaration C_TOKEN_SEMI
+                 | c_assignment C_TOKEN_SEMI
+                 | c_return C_TOKEN_SEMI
+                 | c_controlStructure
                  ;
 
-cpp_assignment : CPP_ID CPP_ASSIGN cpp_expr ;
-cpp_varDeclaration : cpp_typeSpecifier CPP_ID (CPP_ASSIGN cpp_expr)? ;
-cpp_return : CPP_RETURN cpp_expr? ;
-cpp_controlStructure
-                 : CPP_IF CPP_LPAREN cpp_expr CPP_RPAREN cpp_funcBody
-                   (CPP_ELSE cpp_funcBody)?
-                 | CPP_FOR CPP_LPAREN cpp_assignment? CPP_SEMI cpp_expr? CPP_SEMI
-                   cpp_assignment? CPP_RPAREN cpp_funcBody
+c_assignment : C_ID C_TOKEN_ASSIGN c_expr ;
+c_varDeclaration : c_typeSpecifier C_ID (C_TOKEN_ASSIGN c_expr)? ;
+c_return : C_TOKEN_RETURN c_expr? ;
+
+
+
+c_mathFunctionCall
+                 : 
+                  c_mathFunction C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN
                  ;
 
-cpp_expr         : cpp_expr (CPP_PLUS | CPP_MINUS | CPP_STAR | CPP_DIV) cpp_expr
-                 | CPP_LPAREN cpp_expr CPP_RPAREN
-                 | CPP_ID
-                 | CPP_NUMBER
-                 | cpp_expr (CPP_AND | CPP_OR) cpp_expr
-                 | CPP_NOT cpp_expr
-                 | CPP_TRUE_KW
-                 | CPP_FALSE_KW
+c_controlStructure
+                 : C_TOKEN_IF C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN c_funcBody
+                      (C_TOKEN_ELSE c_funcBody)?
+                 | C_TOKEN_FOR C_TOKEN_LPAREN c_assignment? C_TOKEN_SEMI c_expr? C_TOKEN_SEMI
+                      c_assignment? C_TOKEN_RPAREN c_funcBody
+                 | C_TOKEN_WHILE C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN c_funcBody
+                 | C_TOKEN_DO c_funcBody C_TOKEN_WHILE C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN 
+                 ;
+
+c_expr         : c_expr (C_TOKEN_PLUS | C_TOKEN_MINUS | C_TOKEN_STAR | C_TOKEN_DIV) c_expr
+                 | c_expr (C_TOKEN_LT | C_TOKEN_GT | C_TOKEN_LTE | C_TOKEN_GTE | C_TOKEN_EQ | C_TOKEN_NEQ ) c_expr
+                 | C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN
+                 | C_ID
+                 | C_NUMBER
+                 | c_expr (C_TOKEN_AND | C_TOKEN_OR) c_expr
+                 | C_TOKEN_NOT c_expr
+                 | C_TOKEN_TRUE_KW
+                 | C_TOKEN_FALSE_KW
                  ;
 
 /*─────────────
