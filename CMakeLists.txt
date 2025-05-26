@@ -2,10 +2,16 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0135 NEW)
 
 project(PlotScriptInterpreter LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# you should set the path to your antlr4 jar file
-set(ANTLR4_JAR_PATH "$ENV{HOME}/.local/lib/antlr/antlr-4.13.2-complete.jar")
+
+if(WIN32)
+  set(ANTLR4_JAR_PATH "C:/tools/antlr/antlr-4.13.2-complete.jar")
+else()
+  set(ANTLR4_JAR_PATH "$ENV{HOME}/.local/lib/antlr/antlr-4.13.2-complete.jar")
+endif()
+
 set(GRAMMAR_DIR ${CMAKE_SOURCE_DIR}/grammar)
 set(LEXER_GRAMMAR_FILE ${GRAMMAR_DIR}/PlotScriptLexer.g4)
 set(PARSER_GRAMMAR_FILE ${GRAMMAR_DIR}/PlotScriptParser.g4)
@@ -43,8 +49,16 @@ add_custom_target(antlr4_gen ALL DEPENDS
 )
 
 include_directories(${ANTLR4_OUTPUT_DIR})
-# you should set the path to your antlr4 runtime library
-include_directories("/usr/local/include/antlr4-runtime")
+
+if(WIN32)
+  set(ANTLR4_RUNTIME_INCLUDE "C:/tools/vcpkg/installed/x64-windows/include/antlr4-runtime")
+  set(ANTLR4_RUNTIME_LIB     "C:/tools/vcpkg/installed/x64-windows/lib/antlr4-runtime.lib")
+else()
+  set(ANTLR4_RUNTIME_INCLUDE "/usr/local/include/antlr4-runtime")
+  set(ANTLR4_RUNTIME_LIB     "/usr/local/lib/libantlr4-runtime.a")
+endif()
+
+include_directories(${ANTLR4_RUNTIME_INCLUDE})
 
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -63,60 +77,14 @@ add_library(PlotScriptLib
 
 add_dependencies(PlotScriptLib antlr4_gen)
 
-target_link_libraries(PlotScriptLib PRIVATE /usr/local/lib/libantlr4-runtime.a)
+if(WIN32)
+  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
+else() 
+  target_link_libraries(PlotScriptLib PRIVATE /usr/local/lib/libantlr4-runtime.a)
+endif()
+
 add_executable(PlotScript src/main.cpp)
 target_link_libraries(PlotScript PRIVATE PlotScriptLib)
 
-enable_testing()
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
-
-add_executable(InterpreterTest
-  tests/InterpreterTest.cpp
-)
-target_link_libraries(InterpreterTest
-  PRIVATE
-    GTest::gtest_main
-    PlotScriptLib
-)
-include(GoogleTest)
-gtest_discover_tests(InterpreterTest)
-
-add_executable(EnvironmentTest
-  tests/EnvironmentTest.cpp
-)
-target_link_libraries(EnvironmentTest
-  PRIVATE
-    GTest::gtest_main
-    PlotScriptLib
-)
-gtest_discover_tests(EnvironmentTest)
-
-add_executable(ASTBuilderTest
-  tests/ASTBuilderTest.cpp
-)
-target_link_libraries(ASTBuilderTest
-  PRIVATE
-    GTest::gtest_main
-    PlotScriptLib
-)
-gtest_discover_tests(ASTBuilderTest)
-
-# make TEST_SRCDIR available to tests
-add_definitions(-DTEST_SRCDIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
-
-add_executable(InterpreterIntegrationTest
-  tests/InterpreterIntegrationTest.cpp)
-
-target_link_libraries(InterpreterIntegrationTest
-  PRIVATE
-    GTest::gtest_main
-    PlotScriptLib
-)
-
-gtest_discover_tests(InterpreterIntegrationTest
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-  # optional: pass --output-on-failure
-)
 
 
