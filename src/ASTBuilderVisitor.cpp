@@ -71,14 +71,15 @@ std::any ASTBuilderVisitor::visitPlotStatement(PlotScriptParser::PlotStatementCo
 }
 
 std::any ASTBuilderVisitor::visitPlotFunctionIdentifier(PlotScriptParser::PlotFunctionIdentifierContext *ctx) {
-    if (ctx->AXIS1())        return ctx->AXIS1()->getText();
-    if (ctx->AXIS2())        return ctx->AXIS2()->getText();
-    if (ctx->COLOR())        return ctx->COLOR()->getText();
-    if (ctx->OUTPUT())       return ctx->OUTPUT()->getText();
-    if (ctx->AXIS1_SCALE())  return ctx->AXIS1_SCALE()->getText();
-    if (ctx->AXIS2_SCALE())  return ctx->AXIS2_SCALE()->getText();
-    return string{};
+    if (ctx->TOKEN_AXIS1())       return ctx->TOKEN_AXIS1()->getText();
+    if (ctx->TOKEN_AXIS2())       return ctx->TOKEN_AXIS2()->getText();
+    if (ctx->TOKEN_COLOR())       return ctx->TOKEN_COLOR()->getText();
+    if (ctx->TOKEN_OUTPUT())      return ctx->TOKEN_OUTPUT()->getText();
+    if (ctx->TOKEN_AXIS1_SCALE()) return ctx->TOKEN_AXIS1_SCALE()->getText();
+    if (ctx->TOKEN_AXIS2_SCALE()) return ctx->TOKEN_AXIS2_SCALE()->getText();
+    return std::string{};
 }
+
 
 std::any ASTBuilderVisitor::visitExpression(PlotScriptParser::ExpressionContext *ctx) {
     if (ctx->value()) {
@@ -149,15 +150,15 @@ std::any ASTBuilderVisitor::visitExportStatement(PlotScriptParser::ExportStateme
 }
 
 // C++-embedded code visitors remain unimplemented
-std::any ASTBuilderVisitor::visitCpp_funcDeclaration(PlotScriptParser::Cpp_funcDeclarationContext *ctx)        { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_funcReturnType(PlotScriptParser::Cpp_funcReturnTypeContext *ctx)          { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_typeSpecifier(PlotScriptParser::Cpp_typeSpecifierContext *ctx)            { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_paramList(PlotScriptParser::Cpp_paramListContext *ctx)                   { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_parameter(PlotScriptParser::Cpp_parameterContext *ctx)                   { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_funcBody(PlotScriptParser::Cpp_funcBodyContext *ctx)                     { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_funcStatement(PlotScriptParser::Cpp_funcStatementContext *ctx)           { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_assignment(PlotScriptParser::Cpp_assignmentContext *ctx)                 { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_varDeclaration(PlotScriptParser::Cpp_varDeclarationContext *ctx)         { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_return(PlotScriptParser::Cpp_returnContext *ctx)                         { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_controlStructure(PlotScriptParser::Cpp_controlStructureContext *ctx)     { return visitChildren(ctx); }
-std::any ASTBuilderVisitor::visitCpp_expr(PlotScriptParser::Cpp_exprContext *ctx)                             { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_funcDeclaration(PlotScriptParser::Cpp_funcDeclarationContext *ctx)        { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_funcReturnType(PlotScriptParser::Cpp_funcReturnTypeContext *ctx)          { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_typeSpecifier(PlotScriptParser::Cpp_typeSpecifierContext *ctx)            { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_paramList(PlotScriptParser::Cpp_paramListContext *ctx)                   { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_parameter(PlotScriptParser::Cpp_parameterContext *ctx)                   { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_funcBody(PlotScriptParser::Cpp_funcBodyContext *ctx)                     { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_funcStatement(PlotScriptParser::Cpp_funcStatementContext *ctx)           { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_assignment(PlotScriptParser::Cpp_assignmentContext *ctx)                 { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_varDeclaration(PlotScriptParser::Cpp_varDeclarationContext *ctx)         { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_return(PlotScriptParser::Cpp_returnContext *ctx)                         { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_controlStructure(PlotScriptParser::Cpp_controlStructureContext *ctx)     { return visitChildren(ctx); }
+// std::any ASTBuilderVisitor::visitCpp_expr(PlotScriptParser::Cpp_exprContext *ctx)                             { return visitChildren(ctx); }
