@@ -1,4 +1,5 @@
 #include "Interpreter.h"
+#include "Plotter.h"
 #include <stdexcept>
 
 // run all statements in the program
@@ -14,7 +15,21 @@ void Interpreter::interpret(const Program* program) {
             if (x.size() != y.size()) {
                 throw std::runtime_error("axis1 and axis2 size mismatch");
             }
-            // Plotter::drawPlot(x, y, plot->outputFile);
+
+            std::vector<std::pair<double,double>> pts;
+            pts.reserve(x.size());
+            for (size_t i = 0; i < x.size(); ++i) {
+                pts.emplace_back(x[i], y[i]);
+            }
+
+            Plotter plt(800, 600);
+
+            // plt.setRange(min(xv), max(xv), min(yv), max(yv));
+
+            plt.addSeries(pts, true);
+
+            plt.save(plot->outputFile);
+
         } else {
             throw std::runtime_error("Unknown AST node in interpret");
         }
