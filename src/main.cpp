@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -9,6 +10,7 @@
 
 #include "ASTBuilderVisitor.h"
 #include "AST.h"
+#include "Interpreter.h"  // Changed: include Interpreter for executing Plotter
 
 using namespace antlr4;
 using namespace std;
@@ -78,7 +80,7 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    // 6. Cast to Program* and report if mismatch
+    // 6. Cast to Program*
     Program* program = nullptr;
     try {
         program = std::any_cast<Program*>(rootAny);
@@ -87,29 +89,17 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    // 7. Simple AST dump
-    cout << "Parsed " << program->statements.size() << " statement(s)\n";
-    for (auto* stmt : program->statements) {
-        if (auto* plot = dynamic_cast<PlotCommandStmt*>(stmt)) {
-            cout << "Plot command:\n";
-            cout << "  axis1 = "; printExpr(plot->axis1Expr); cout << "\n";
-            cout << "  axis2 = "; printExpr(plot->axis2Expr); cout << "\n";
-            cout << "  output = " << plot->outputFile << "\n";
-        }
-        else if (auto* assign = dynamic_cast<AssignmentStmt*>(stmt)) {
-            cout << "Assignment: " << assign->varName << " = ";
-            printExpr(assign->valueExpr);
-            cout << "\n";
-        }
-        else {
-            cout << "Unknown statement type\n";
-        }
+    // Removed: Simple AST dump to console
+    // Changed: Use Interpreter to execute PlotCommandStmt and produce PNG
+    {
+        Interpreter interp;
+        interp.interpret(program);
     }
 
-    // 7. Cleanup
+    // Cleanup
     delete program;
-
     return 0;
 }
+
 
 
