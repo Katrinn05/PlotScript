@@ -64,6 +64,7 @@ private:
     void drawAxes();
 
     // Render all series into pixel buffer
+    // Draw each series; connected series use Catmull-Rom spline interpolation for smooth curves
     void drawSeries();
 
     // Draw single character and string (using 5x7 bitmap font)
