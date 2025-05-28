@@ -109,18 +109,62 @@ void Plotter::drawAxes() {
     }
 }
 
+
 void Plotter::drawSeries() {
     for (auto &s : seriesList) {
-        for (size_t i = 0; i < s.pts.size(); ++i) {
-            int px = toPxX(s.pts[i].first), py = toPxY(s.pts[i].second);
-            if (!s.connect) drawPoint(px, py, s.color);
-            else if (i > 0) {
-                int px0 = toPxX(s.pts[i-1].first), py0 = toPxY(s.pts[i-1].second);
-                drawLine(px0, py0, px, py, s.color);
+        if (s.connect) {
+            // We will interpolate with a Catmull–Rom spline
+            const auto &p = s.pts;
+            size_t n = p.size();
+            if (n < 2) continue;
+
+            // Build an extended point list: duplicate endpoints
+            std::vector<std::pair<double,double>> pts;
+            pts.reserve(n + 2);
+            pts.push_back(p.front());           // P0 = first
+            pts.insert(pts.end(), p.begin(), p.end());
+            pts.push_back(p.back());            // Pn+1 = last
+
+            const int subdivisions = 20;        // points per segment
+            // For each segment between P1 and P2
+            for (size_t i = 1; i + 2 < pts.size(); ++i) {
+                auto P0 = pts[i-1], P1 = pts[i], P2 = pts[i+1], P3 = pts[i+2];
+                // Start from the real point P1
+                double prevX = P1.first, prevY = P1.second;
+
+                // Compute subdivisions
+                for (int j = 1; j <= subdivisions; ++j) {
+                    double t  = double(j) / subdivisions;
+                    double t2 = t*t, t3 = t2*t;
+                    // Catmull–Rom formula: 0.5 * ((2P1) + (P2–P0)t + (2P0–5P1+4P2–P3)t² + (–P0+3P1–3P2+P3)t³)
+                    double x = 0.5 * (2*P1.first
+                        + (-P0.first + P2.first)*t
+                        + (2*P0.first - 5*P1.first + 4*P2.first - P3.first)*t2
+                        + (-P0.first + 3*P1.first - 3*P2.first + P3.first)*t3);
+                    double y = 0.5 * (2*P1.second
+                        + (-P0.second + P2.second)*t
+                        + (2*P0.second - 5*P1.second + 4*P2.second - P3.second)*t2
+                        + (-P0.second + 3*P1.second - 3*P2.second + P3.second)*t3);
+
+                    // Draw line from previous interpolated point to current
+                    int x0 = toPxX(prevX), y0 = toPxY(prevY);
+                    int x1 = toPxX(x),     y1 = toPxY(y);
+                    drawLine(x0, y0, x1, y1, s.color);
+
+                    prevX = x;
+                    prevY = y;
+                }
+            }
+        } else {
+            // No connection: just draw discrete points
+            for (auto &pt : s.pts) {
+                int px = toPxX(pt.first), py = toPxY(pt.second);
+                drawPoint(px, py, s.color);
             }
         }
     }
 }
+
 
 static const uint8_t font5x7[][7] = {
     {0x0E,0x11,0x11,0x11,0x0E,0x00,0x00}, // 0
@@ -215,4 +259,5 @@ void Plotter::save(const std::string& filename) {
     clearPixels(); drawGrid(); drawAxes(); drawSeries(); drawLabels();
     writeBMP(filename);
 }
+
 
