@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 
 Plotter::Plotter(int width, int height)
     : imgW(width), imgH(height), hasRange(false) {

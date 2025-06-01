@@ -5,6 +5,13 @@ project(PlotScriptInterpreter LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+find_program(GPP_EXECUTABLE g++)
+if (NOT GPP_EXECUTABLE)
+    message(FATAL_ERROR "g++ not found. Please install g++ and ensure it is in your PATH.")
+endif()
+
 
 if(WIN32)
   set(ANTLR4_JAR_PATH "C:/tools/antlr/antlr-4.13.2-complete.jar")
@@ -80,11 +87,46 @@ add_dependencies(PlotScriptLib antlr4_gen)
 if(WIN32)
   target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
 else() 
-  target_link_libraries(PlotScriptLib PRIVATE /usr/local/lib/libantlr4-runtime.a)
+  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
 endif()
 
 add_executable(PlotScript src/main.cpp)
 target_link_libraries(PlotScript PRIVATE PlotScriptLib)
 
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 
+add_executable(InterpreterTest
+  tests/InterpreterTest.cpp
+)
+target_link_libraries(InterpreterTest
+  PRIVATE
+    GTest::gtest_main
+    PlotScriptLib
+)
+include(GoogleTest)
+gtest_discover_tests(InterpreterTest)
+
+add_executable(EnvironmentTest
+  tests/EnvironmentTest.cpp
+)
+target_link_libraries(EnvironmentTest
+  PRIVATE
+    GTest::gtest_main
+    PlotScriptLib
+)
+gtest_discover_tests(EnvironmentTest)
+
+add_executable(ASTBuilderTest
+  tests/ASTBuilderTest.cpp
+)
+target_link_libraries(ASTBuilderTest
+  PRIVATE
+    GTest::gtest_main
+    PlotScriptLib
+)
+gtest_discover_tests(ASTBuilderTest)
+
+add_definitions(-DTEST_SRCDIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
 

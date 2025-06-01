@@ -104,6 +104,7 @@ c_controlStructure
 c_expr         : c_expr (C_TOKEN_PLUS | C_TOKEN_MINUS | C_TOKEN_STAR | C_TOKEN_DIV) c_expr
                  | c_expr (C_TOKEN_LT | C_TOKEN_GT | C_TOKEN_LTE | C_TOKEN_GTE | C_TOKEN_EQ | C_TOKEN_NEQ ) c_expr
                  | C_TOKEN_LPAREN c_expr C_TOKEN_RPAREN
+                 | c_mathFunctionCall
                  | C_ID
                  | C_NUMBER
                  | c_expr (C_TOKEN_AND | C_TOKEN_OR) c_expr

@@ -26,6 +26,11 @@ private:
     std::vector<double> evalNumber(const NumberExpr* expr);
     std::vector<double> evalList(const ListExpr* expr);
     std::vector<double> evalIdentifier(const IdentifierExpr* expr);
+    std::vector<double> evalCppFunction(const CppFuncExpr* expr);
+    std::vector<double> evalArrange(const ArrangeExpr* expr);
+    std::vector<double> evalInput(const InputExpr* expr);
+    double evalScalar(const Expr* expr);
+
 };
 
 #endif

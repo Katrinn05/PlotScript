@@ -47,12 +47,20 @@ struct AssignmentStmt : ASTNode {
 struct PlotCommandStmt : ASTNode {
     Expr* axis1Expr;
     Expr* axis2Expr;
+    Expr* axis1ScaleExpr;
+    Expr* axis2ScaleExpr; 
     std::string outputFile;
-    PlotCommandStmt(Expr* a1, Expr* a2, const std::string& out)
-        : axis1Expr(a1), axis2Expr(a2), outputFile(out) {}
+    PlotCommandStmt(Expr* a1, Expr* a2, const std::string& out) : 
+        axis1Expr(a1),
+        axis2Expr(a2),
+        axis1ScaleExpr(nullptr),
+        axis2ScaleExpr(nullptr),
+        outputFile(out) {}
     ~PlotCommandStmt() {
         delete axis1Expr;
         delete axis2Expr;
+        delete axis1ScaleExpr;
+        delete axis2ScaleExpr;
     }
 };
 
@@ -62,6 +70,32 @@ struct Program : ASTNode {
     ~Program() {
         for (ASTNode* stmt : statements) delete stmt;
     }
+};
+
+struct CppFuncExpr : Expr {
+    // rawCode — C++ code as a string
+    // Example:
+    // double f(double x) {
+    //     return x * x;
+    // }
+    std::string rawCode;
+
+    CppFuncExpr(const std::string& code) : rawCode(code) {}
+};
+
+struct ArrangeExpr : Expr {
+    double first;
+    double last;
+    double step;
+    bool hasStep;
+
+    ArrangeExpr(double f, double l, double s, bool hs)
+        : first(f), last(l), step(s), hasStep(hs) {}
+};
+
+struct InputExpr : Expr {
+    std::string filename;
+    InputExpr(const std::string& fn) : filename(fn) {}
 };
 
 #endif

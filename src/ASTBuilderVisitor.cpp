@@ -7,7 +7,6 @@ using namespace std;
 
 std::any ASTBuilderVisitor::visitProgram(PlotScriptParser::ProgramContext *ctx) {
     auto *program = new Program();
-    // For each top-level plot definition, build a PlotCommandStmt and add to program
     for (auto *pd : ctx->plotDefinition()) {
         auto *plotCmd = std::any_cast<PlotCommandStmt*>( visit(pd) );
         program->statements.push_back(plotCmd);
@@ -19,9 +18,10 @@ std::any ASTBuilderVisitor::visitProgram(PlotScriptParser::ProgramContext *ctx) 
 std::any ASTBuilderVisitor::visitPlotDefinition(PlotScriptParser::PlotDefinitionContext *ctx) {
     Expr *axis1 = nullptr;
     Expr *axis2 = nullptr;
+    Expr *axis1ScaleExpr = nullptr;
+    Expr *axis2ScaleExpr = nullptr; 
     string outputFile;
 
-    // Process each statement in the plot block
     auto *block = ctx->plotBlock();
     for (auto *stmtCtx : block->plotStatement()) {
         auto *assign = std::any_cast<AssignmentStmt*>( visit(stmtCtx) );
@@ -41,14 +41,22 @@ std::any ASTBuilderVisitor::visitPlotDefinition(PlotScriptParser::PlotDefinition
             }
             delete val;                
         }
+        else if (name == "axis1-scale" || name == "x-scale" || name == "X-scale") {
+            axis1ScaleExpr = val;
+        }
+        else if (name == "axis2-scale" || name == "y-scale" || name == "Y-scale") {
+            axis2ScaleExpr = val;
+        }
         else {
             delete val;                
         }
 
         delete assign;
     }
-
-    return new PlotCommandStmt(axis1, axis2, outputFile);
+    auto *node = new PlotCommandStmt(axis1, axis2, outputFile);
+    node->axis1ScaleExpr = axis1ScaleExpr;
+    node->axis2ScaleExpr = axis2ScaleExpr;
+    return node;
 }
 
 std::any ASTBuilderVisitor::visitPlotName(PlotScriptParser::PlotNameContext *ctx) {
@@ -64,7 +72,6 @@ std::any ASTBuilderVisitor::visitPlotBlock(PlotScriptParser::PlotBlockContext *c
 }
 
 std::any ASTBuilderVisitor::visitPlotStatement(PlotScriptParser::PlotStatementContext *ctx) {
-    // varName: expression;
     string varName = std::any_cast<string>( visit(ctx->plotFunctionIdentifier()) );
     Expr *expr = std::any_cast<Expr*>( visit(ctx->expression()) );
     return new AssignmentStmt(varName, expr);
@@ -89,8 +96,7 @@ std::any ASTBuilderVisitor::visitExpression(PlotScriptParser::ExpressionContext 
         return visit(ctx->list());
     }
     if (ctx->functionCall()) {
-        // built-in or embedded functions: not yet represented in AST.h
-        return visitChildren(ctx);
+        return visit(ctx->functionCall());
     }
     return std::any{ static_cast<Expr*>(nullptr) };
 }
@@ -101,7 +107,6 @@ std::any ASTBuilderVisitor::visitValue(PlotScriptParser::ValueContext *ctx) {
         return static_cast<Expr*>( new NumberExpr(v) );
     }
     if (ctx->STRING()) {
-        // strip surrounding single quotes
         auto txt = ctx->STRING()->getText();
         if (txt.size() >= 2 && txt.front()=='\'' && txt.back()=='\'') {
             txt = txt.substr(1, txt.size()-2);
@@ -122,10 +127,27 @@ std::any ASTBuilderVisitor::visitList(PlotScriptParser::ListContext *ctx) {
     return static_cast<Expr*>( new ListExpr(elems) );
 }
 
-// The following visitors are not yet mapped to concrete AST nodes in AST.h.
-// They delegate to the base implementation.
+std::any ASTBuilderVisitor::visitFunctionCall(PlotScriptParser::FunctionCallContext* ctx) {
+    if (ctx->getToken(PlotScriptParser::TOKEN_ARRANGE, 0)) {
+        auto anyTup = visit(ctx->rangeArgs());
+        auto tup = std::any_cast<std::tuple<double,double,double,bool>>(anyTup);
+        double firstVal = std::get<0>(tup);
+        double lastVal  = std::get<1>(tup);
+        double stepVal  = std::get<2>(tup);
+        bool   hasStep  = std::get<3>(tup);
 
-std::any ASTBuilderVisitor::visitFunctionCall(PlotScriptParser::FunctionCallContext *ctx) {
+        return static_cast<Expr*>( new ArrangeExpr(firstVal, lastVal, stepVal, hasStep) );
+    }
+
+    if (ctx->stringLikeFunction()) {
+        auto anyParam = visit(ctx->stringLikeFunctionParam());
+        std::string filename = std::any_cast<std::string>(anyParam);
+        return static_cast<Expr*>( new InputExpr(filename) );
+    }
+
+    if (ctx->getToken(PlotScriptParser::TOKEN_FUNC, 0)) {
+        return visit(ctx->embeddedFunctionBlock());
+    }
     return visitChildren(ctx);
 }
 
@@ -134,15 +156,73 @@ std::any ASTBuilderVisitor::visitStringLikeFunction(PlotScriptParser::StringLike
 }
 
 std::any ASTBuilderVisitor::visitStringLikeFunctionParam(PlotScriptParser::StringLikeFunctionParamContext *ctx) {
-    return visitChildren(ctx);
+    std::string txt = ctx->STRING()->getText();
+    if (txt.size() >= 2 && txt.front()=='\'' && txt.back()=='\'') {
+        txt = txt.substr(1, txt.size() - 2);
+    } 
+    return txt;
 }
 
 std::any ASTBuilderVisitor::visitRangeArgs(PlotScriptParser::RangeArgsContext *ctx) {
-    return visitChildren(ctx);
+    auto numNodes = ctx->getTokens(PlotScriptParser::NUMBER); 
+    if (numNodes.size() < 2) {
+        throw runtime_error("rangeArgs: expected at least two numeric arguments");
+    }
+
+    double firstVal = std::stod(numNodes[0]->getText());
+    double lastVal  = std::stod(numNodes[1]->getText());
+
+    double stepVal = 1.0;
+    bool   hasStep = false;
+
+    if (ctx->getToken(PlotScriptParser::TOKEN_STEP, 0)) {
+        if (numNodes.size() < 3) {
+            throw runtime_error("rangeArgs: STEP specified but no step value provided");
+        }
+        stepVal = std::stod(numNodes[2]->getText());
+        hasStep = true;
+    }
+
+    return std::make_tuple(firstVal, lastVal, stepVal, hasStep);
 }
 
-std::any ASTBuilderVisitor::visitEmbeddedFunctionBlock(PlotScriptParser::EmbeddedFunctionBlockContext *ctx) {
-    return visitChildren(ctx);
+std::any ASTBuilderVisitor::visitEmbeddedFunctionBlock(PlotScriptParser::EmbeddedFunctionBlockContext* ctx) {
+    antlr4::Token* startToken = ctx->getStart();
+    antlr4::Token*   stopToken = ctx->getStop();
+    if (!startToken || !stopToken) {
+        throw runtime_error("EmbeddedFunctionBlock: did not find start or stop token");
+    }
+
+    antlr4::CharStream* charStream =
+        startToken->getTokenSource()->getInputStream();
+    if (!charStream) {
+        throw runtime_error("EmbeddedFunctionBlock: no input stream found");
+    }
+
+    antlr4::misc::Interval interval{
+        startToken->getStartIndex(),
+        stopToken->getStopIndex()
+    };
+    std::string fullText = charStream->getText(interval);
+    const std::string prefix = "$CPP$";
+    const std::string suffix = "$$";
+
+    if (fullText.rfind(prefix, 0) != 0) {
+        throw runtime_error("EmbeddedFunctionBlock: expected prefix \"$CPP$\"");
+    }
+    if (fullText.size() < prefix.size() + suffix.size()) {
+        throw runtime_error("EmbeddedFunctionBlock: too short for embedded function block");
+    }
+    if (fullText.substr(fullText.size() - suffix.size()) != suffix) {
+        throw runtime_error("EmbeddedFunctionBlock: expected suffix \"$$\"");
+    }
+
+    std::string rawCode = fullText.substr(
+        prefix.size(),
+        fullText.size() - prefix.size() - suffix.size()
+    );
+    auto* cppNode = new CppFuncExpr(rawCode);
+    return static_cast<Expr*>(cppNode);
 }
 
 std::any ASTBuilderVisitor::visitExportStatement(PlotScriptParser::ExportStatementContext *ctx) {
