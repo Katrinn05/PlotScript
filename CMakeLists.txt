@@ -8,10 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_program(GPP_EXECUTABLE g++)
-if (NOT GPP_EXECUTABLE)
+if (MSVC)
+    message(STATUS "MSVC detected, skip g++ check.")
+elseif (NOT GPP_EXECUTABLE)
     message(FATAL_ERROR "g++ not found. Please install g++ and ensure it is in your PATH.")
 endif()
-
 
 if(WIN32)
   set(ANTLR4_JAR_PATH "C:/tools/antlr/antlr-4.13.2-complete.jar")
@@ -67,7 +68,6 @@ endif()
 
 include_directories(${ANTLR4_RUNTIME_INCLUDE})
 
-
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 include_directories(${SRC_DIR})
 set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
@@ -86,12 +86,26 @@ add_dependencies(PlotScriptLib antlr4_gen)
 
 if(WIN32)
   target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
-else() 
+else()
   target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
 endif()
 
 add_executable(PlotScript src/main.cpp)
 target_link_libraries(PlotScript PRIVATE PlotScriptLib)
+
+
+if(CMAKE_CONFIGURATION_TYPES) 
+  set_target_properties(PlotScript PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_SOURCE_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_SOURCE_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_SOURCE_DIR}
+  )
+else()
+  set_target_properties(PlotScript PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+endif()
 
 enable_testing()
 find_package(GTest REQUIRED)
@@ -129,4 +143,3 @@ target_link_libraries(ASTBuilderTest
 gtest_discover_tests(ASTBuilderTest)
 
 add_definitions(-DTEST_SRCDIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
-
