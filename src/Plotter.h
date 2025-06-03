@@ -25,6 +25,8 @@ public:
     // Save the rendered plot to a BMP file (filename should end in ".bmp")
     void save(const std::string& filename);
 
+    void overrideLastSeriesColor(Color c);
+    
 private:
     // Internal struct for a data series
     struct Series {

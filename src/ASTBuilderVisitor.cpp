@@ -16,10 +16,13 @@ std::any ASTBuilderVisitor::visitProgram(PlotScriptParser::ProgramContext *ctx) 
 }
 
 std::any ASTBuilderVisitor::visitPlotDefinition(PlotScriptParser::PlotDefinitionContext *ctx) {
+    std::string name = ctx->plotName()->ID()->getText();
+    
     Expr *axis1 = nullptr;
     Expr *axis2 = nullptr;
     Expr *axis1ScaleExpr = nullptr;
-    Expr *axis2ScaleExpr = nullptr; 
+    Expr *axis2ScaleExpr = nullptr;
+    Expr *colorExpr = nullptr; 
     string outputFile;
 
     auto *block = ctx->plotBlock();
@@ -28,23 +31,26 @@ std::any ASTBuilderVisitor::visitPlotDefinition(PlotScriptParser::PlotDefinition
         Expr* val = assign->valueExpr;
         assign->valueExpr = nullptr;
 
-        const auto& name = assign->varName;
-        if (name == "axis1") {
+        const auto& varName = assign->varName;
+        if (varName == "axis1") {
             axis1 = val;
         }
-        else if (name == "axis2") {
+        else if (varName == "axis2") {
             axis2 = val;
-        }  
-        else if (name == "output") {
+        } 
+        else if (varName == "color") {
+            colorExpr = val;
+        } 
+        else if (varName == "output") {
             if (auto* id = dynamic_cast<IdentifierExpr*>(val)) {
                 outputFile = id->name;
             }
             delete val;                
         }
-        else if (name == "axis1-scale" || name == "x-scale" || name == "X-scale") {
+        else if (varName == "axis1-scale" || varName == "x-scale" || varName == "X-scale") {
             axis1ScaleExpr = val;
         }
-        else if (name == "axis2-scale" || name == "y-scale" || name == "Y-scale") {
+        else if (varName == "axis2-scale" || varName == "y-scale" || varName == "Y-scale") {
             axis2ScaleExpr = val;
         }
         else {
@@ -53,7 +59,7 @@ std::any ASTBuilderVisitor::visitPlotDefinition(PlotScriptParser::PlotDefinition
 
         delete assign;
     }
-    auto *node = new PlotCommandStmt(axis1, axis2, outputFile);
+    auto *node = new PlotCommandStmt(name, axis1, axis2, colorExpr, outputFile);
     node->axis1ScaleExpr = axis1ScaleExpr;
     node->axis2ScaleExpr = axis2ScaleExpr;
     return node;
@@ -226,7 +232,13 @@ std::any ASTBuilderVisitor::visitEmbeddedFunctionBlock(PlotScriptParser::Embedde
 }
 
 std::any ASTBuilderVisitor::visitExportStatement(PlotScriptParser::ExportStatementContext *ctx) {
-    return visitChildren(ctx);
+    std::vector<std::string> names;
+    for (auto *pnCtx : ctx->plotName()) {
+        std::string nm = pnCtx->ID()->getText();
+        names.push_back(nm);
+    }
+
+    return static_cast<ASTNode*>( new ExportStmt(names) );
 }
 
 // C++-embedded code visitors remain unimplemented

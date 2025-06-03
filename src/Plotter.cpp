@@ -39,6 +39,12 @@ void Plotter::addSeries(const std::vector<std::pair<double,double>>& pts, bool c
     seriesList.push_back(s);
 }
 
+void Plotter::overrideLastSeriesColor(Color c) {
+    if (!seriesList.empty()) {
+        seriesList.back().color = c;
+    }
+}
+
 int Plotter::toPxX(double x) const {
     double w = imgW - marginL - marginR;
     return int(std::round(marginL + (x - xmin) / (xmax - xmin) * w));

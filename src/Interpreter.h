@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <unordered_map>
 
 // Interpreter for executing the AST using Environment
 class Interpreter {
@@ -30,6 +31,8 @@ private:
     std::vector<double> evalArrange(const ArrangeExpr* expr);
     std::vector<double> evalInput(const InputExpr* expr);
     double evalScalar(const Expr* expr);
+
+    std::unordered_map<std::string, const PlotCommandStmt*> plotDefs_;
 
 };
 

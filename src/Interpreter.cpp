@@ -2,29 +2,107 @@
 #include "Plotter.h"
 #include <stdexcept>
 #include <fstream>
+#include <cmath>
 
 // run all statements in the program
 void Interpreter::interpret(const Program* program) {
     if (!program) return;
+    bool seenExport = false;
     for (const auto* node : program->statements) {
         if (auto assign = dynamic_cast<const AssignmentStmt*>(node)) {
             auto values = evaluate(assign->valueExpr);
             env_.set(assign->varName, values);
         } else if (auto plot = dynamic_cast<const PlotCommandStmt*>(node)) {
-            auto x = evaluate(plot->axis1Expr);
+            const std::string& nm = plot->name;
+            if (plotDefs_.count(nm)) {
+                throw std::runtime_error("Duplicate plot name: " + nm);
+            }
+            plotDefs_[nm] = plot;
+        } else if (auto expStmt = dynamic_cast<const ExportStmt*>(node)) {
+
+            seenExport = true;
+            for (const std::string& plotName : expStmt->plotNames) {
+                auto it = plotDefs_.find(plotName);
+                if (it == plotDefs_.end()) {
+                    throw std::runtime_error("Export: unknown plot name \"" + plotName + "\"");
+                }
+                const PlotCommandStmt* plotDef = it->second;
+            
+                auto x = evaluate(plot->axis1Expr);
+                env_.set("__last_x__", x);
+                auto y = evaluate(plot->axis2Expr);
+                if (x.size() != y.size()) {
+                    throw std::runtime_error("axis1 and axis2 size mismatch");
+                }
+
+                double xScale = 1.0, yScale = 1.0;
+                if (plot->axis1ScaleExpr) {
+                    xScale = evalScalar(plot->axis1ScaleExpr);
+                    if (xScale <= 0) throw std::runtime_error("axis1-scale must be positive");
+                }
+                if (plot->axis2ScaleExpr) {
+                    yScale = evalScalar(plot->axis2ScaleExpr);
+                    if (yScale <= 0) throw std::runtime_error("axis2-scale must be positive");
+                }
+
+                std::vector<std::pair<double,double>> pts;
+                pts.reserve(x.size());
+                for (size_t i = 0; i < x.size(); ++i) {
+                    pts.emplace_back(x[i] * xScale, y[i] * yScale);
+                }
+
+                Color customColor = {0, 0, 0};
+                bool hasCustomColor = false;
+
+                if (plot->colorExpr) {
+                    auto colVals = evaluate(plot->colorExpr);
+                    if (colVals.size() != 3) {
+                        throw std::runtime_error("color: expected 3 components for RGB color");
+                    }
+                    for (double v : colVals) {
+                        if (v < 0 || v > 255) {
+                        throw std::runtime_error("color: components must be in range [0, 255]");
+                        }
+                    }
+                    customColor.r = static_cast<unsigned char>(std::lround(colVals[0]));
+                    customColor.g = static_cast<unsigned char>(std::lround(colVals[1]));
+                    customColor.b = static_cast<unsigned char>(std::lround(colVals[2]));
+                    hasCustomColor = true;
+                }
+
+                Plotter plt(800, 600);
+
+                // plt.setRange(min(xv), max(xv), min(yv), max(yv));
+
+                plt.addSeries(pts, true);
+            
+                if (hasCustomColor) plt.overrideLastSeriesColor(customColor);
+                
+                plt.save(plot->outputFile);
+            }
+        } else {
+            throw std::runtime_error("Unknown AST node in interpret");
+        }
+    }
+    if (!seenExport) {
+        for (const auto& kv : plotDefs_) {
+            const PlotCommandStmt* plotDef = kv.second;
+            const std::string& plotName = plotDef->name;
+
+            auto x = evaluate(plotDef->axis1Expr);
             env_.set("__last_x__", x);
-            auto y = evaluate(plot->axis2Expr);
+            auto y = evaluate(plotDef->axis2Expr);
             if (x.size() != y.size()) {
-                throw std::runtime_error("axis1 and axis2 size mismatch");
+                throw std::runtime_error("axis1 and axis2 size mismatch for plot \"" + plotName + "\"");
             }
 
             double xScale = 1.0, yScale = 1.0;
-            if (plot->axis1ScaleExpr) {
-                xScale = evalScalar(plot->axis1ScaleExpr);
+            if (plotDef->axis1ScaleExpr) {
+                xScale = evalScalar(plotDef->axis1ScaleExpr);
                 if (xScale <= 0) throw std::runtime_error("axis1-scale must be positive");
             }
-            if (plot->axis2ScaleExpr) {
-                yScale = evalScalar(plot->axis2ScaleExpr);
+            if (plotDef->axis2ScaleExpr) {
+                yScale = evalScalar(plotDef->axis2ScaleExpr);
                 if (yScale <= 0) throw std::runtime_error("axis2-scale must be positive");
             }
 
@@ -34,16 +112,33 @@ void Interpreter::interpret(const Program* program) {
                 pts.emplace_back(x[i] * xScale, y[i] * yScale);
             }
 
-            Plotter plt(800, 600);
+            Color customColor = {0, 0, 0};
+            bool hasCustomColor = false;
+            if (plotDef->colorExpr) {
+                auto colVals = evaluate(plotDef->colorExpr);
+                if (colVals.size() != 3) {
+                    throw std::runtime_error("color: expected 3 components for RGB color");
+                }
+                for (double v : colVals) {
+                    if (v < 0 || v > 255) {
+                        throw std::runtime_error("color: components must be in range [0, 255]");
+                    }
+                }
+                customColor.r = static_cast<unsigned char>(std::lround(colVals[0]));
+                customColor.g = static_cast<unsigned char>(std::lround(colVals[1]));
+                customColor.b = static_cast<unsigned char>(std::lround(colVals[2]));
+                hasCustomColor = true;
+            }
 
+            Plotter plt(800, 600);
             // plt.setRange(min(xv), max(xv), min(yv), max(yv));
 
             plt.addSeries(pts, true);
+            if (hasCustomColor) {
+                plt.overrideLastSeriesColor(customColor);
+            }
 
-            plt.save(plot->outputFile);
-
-        } else {
-            throw std::runtime_error("Unknown AST node in interpret");
+            plt.save(plotDef->outputFile);
         }
     }
 }

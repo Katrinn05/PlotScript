@@ -45,22 +45,27 @@ struct AssignmentStmt : ASTNode {
 
 // Plot command: plot axis1Expr, axis2Expr -> outputFile
 struct PlotCommandStmt : ASTNode {
+    std::string name;
     Expr* axis1Expr;
     Expr* axis2Expr;
     Expr* axis1ScaleExpr;
-    Expr* axis2ScaleExpr; 
+    Expr* axis2ScaleExpr;
+    Expr* colorExpr; 
     std::string outputFile;
-    PlotCommandStmt(Expr* a1, Expr* a2, const std::string& out) : 
+    PlotCommandStmt(const std::string& nm, Expr* a1, Expr* a2, Expr* c, const std::string& out) : 
+        name(nm),
         axis1Expr(a1),
         axis2Expr(a2),
         axis1ScaleExpr(nullptr),
         axis2ScaleExpr(nullptr),
+        colorExpr(c),
         outputFile(out) {}
     ~PlotCommandStmt() {
         delete axis1Expr;
         delete axis2Expr;
         delete axis1ScaleExpr;
         delete axis2ScaleExpr;
+        if (colorExpr) delete colorExpr;
     }
 };
 
@@ -96,6 +101,13 @@ struct ArrangeExpr : Expr {
 struct InputExpr : Expr {
     std::string filename;
     InputExpr(const std::string& fn) : filename(fn) {}
+};
+
+struct ExportStmt : ASTNode {
+    std::vector<std::string> plotNames;
+
+    ExportStmt(const std::vector<std::string>& names)
+        : plotNames(names) {}
 };
 
 #endif
