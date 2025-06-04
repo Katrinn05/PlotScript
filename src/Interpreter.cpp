@@ -3,8 +3,12 @@
 #include <stdexcept>
 #include <fstream>
 #include <cmath>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <utility>
+#include <windows.h>
 
-// run all statements in the program
 void Interpreter::interpret(const Program* program) {
     if (!program) return;
     bool seenExport = false;
@@ -12,14 +16,15 @@ void Interpreter::interpret(const Program* program) {
         if (auto assign = dynamic_cast<const AssignmentStmt*>(node)) {
             auto values = evaluate(assign->valueExpr);
             env_.set(assign->varName, values);
-        } else if (auto plot = dynamic_cast<const PlotCommandStmt*>(node)) {
+        }
+        else if (auto plot = dynamic_cast<const PlotCommandStmt*>(node)) {
             const std::string& nm = plot->name;
             if (plotDefs_.count(nm)) {
                 throw std::runtime_error("Duplicate plot name: " + nm);
             }
             plotDefs_[nm] = plot;
-        } else if (auto expStmt = dynamic_cast<const ExportStmt*>(node)) {
-
+        }
+        else if (auto expStmt = dynamic_cast<const ExportStmt*>(node)) {
             seenExport = true;
             for (const std::string& plotName : expStmt->plotNames) {
                 auto it = plotDefs_.find(plotName);
@@ -27,21 +32,21 @@ void Interpreter::interpret(const Program* program) {
                     throw std::runtime_error("Export: unknown plot name \"" + plotName + "\"");
                 }
                 const PlotCommandStmt* plotDef = it->second;
-            
-                auto x = evaluate(plot->axis1Expr);
+
+                auto x = evaluate(plotDef->axis1Expr);
                 env_.set("__last_x__", x);
-                auto y = evaluate(plot->axis2Expr);
+                auto y = evaluate(plotDef->axis2Expr);
                 if (x.size() != y.size()) {
                     throw std::runtime_error("axis1 and axis2 size mismatch");
                 }
 
                 double xScale = 1.0, yScale = 1.0;
-                if (plot->axis1ScaleExpr) {
-                    xScale = evalScalar(plot->axis1ScaleExpr);
+                if (plotDef->axis1ScaleExpr) {
+                    xScale = evalScalar(plotDef->axis1ScaleExpr);
                     if (xScale <= 0) throw std::runtime_error("axis1-scale must be positive");
                 }
-                if (plot->axis2ScaleExpr) {
-                    yScale = evalScalar(plot->axis2ScaleExpr);
+                if (plotDef->axis2ScaleExpr) {
+                    yScale = evalScalar(plotDef->axis2ScaleExpr);
                     if (yScale <= 0) throw std::runtime_error("axis2-scale must be positive");
                 }
 
@@ -53,15 +58,14 @@ void Interpreter::interpret(const Program* program) {
 
                 Color customColor = {0, 0, 0};
                 bool hasCustomColor = false;
-
-                if (plot->colorExpr) {
-                    auto colVals = evaluate(plot->colorExpr);
+                if (plotDef->colorExpr) {
+                    auto colVals = evaluate(plotDef->colorExpr);
                     if (colVals.size() != 3) {
                         throw std::runtime_error("color: expected 3 components for RGB color");
                     }
                     for (double v : colVals) {
                         if (v < 0 || v > 255) {
-                        throw std::runtime_error("color: components must be in range [0, 255]");
+                            throw std::runtime_error("color: components must be in range [0, 255]");
                         }
                     }
                     customColor.r = static_cast<unsigned char>(std::lround(colVals[0]));
@@ -71,29 +75,26 @@ void Interpreter::interpret(const Program* program) {
                 }
 
                 Plotter plt(800, 600);
-
-                // plt.setRange(min(xv), max(xv), min(yv), max(yv));
-
                 plt.addSeries(pts, true);
-            
                 if (hasCustomColor) plt.overrideLastSeriesColor(customColor);
-                
-                plt.save(plot->outputFile);
+
+                plt.save(plotDef->outputFile);
             }
-        } else {
+        }
+        else {
             throw std::runtime_error("Unknown AST node in interpret");
         }
     }
+
     if (!seenExport) {
         for (const auto& kv : plotDefs_) {
             const PlotCommandStmt* plotDef = kv.second;
-            const std::string& plotName = plotDef->name;
 
             auto x = evaluate(plotDef->axis1Expr);
             env_.set("__last_x__", x);
             auto y = evaluate(plotDef->axis2Expr);
             if (x.size() != y.size()) {
-                throw std::runtime_error("axis1 and axis2 size mismatch for plot \"" + plotName + "\"");
+                throw std::runtime_error("axis1 and axis2 size mismatch for a plot");
             }
 
             double xScale = 1.0, yScale = 1.0;
@@ -131,8 +132,6 @@ void Interpreter::interpret(const Program* program) {
             }
 
             Plotter plt(800, 600);
-            // plt.setRange(min(xv), max(xv), min(yv), max(yv));
-
             plt.addSeries(pts, true);
             if (hasCustomColor) {
                 plt.overrideLastSeriesColor(customColor);
@@ -143,14 +142,13 @@ void Interpreter::interpret(const Program* program) {
     }
 }
 
-// dispatch evaluation to specific handlers
 std::vector<double> Interpreter::evaluate(const Expr* expr) {
     if (!expr) return {};
     if (auto num = dynamic_cast<const NumberExpr*>(expr)) return evalNumber(num);
     if (auto list = dynamic_cast<const ListExpr*>(expr)) return evalList(list);
     if (auto id = dynamic_cast<const IdentifierExpr*>(expr)) return evalIdentifier(id);
-    if (auto arr  = dynamic_cast<const ArrangeExpr*>(expr))  return evalArrange(arr); 
-    if (auto inp  = dynamic_cast<const InputExpr*>(expr)) return evalInput(inp);
+    if (auto arr = dynamic_cast<const ArrangeExpr*>(expr)) return evalArrange(arr);
+    if (auto inp = dynamic_cast<const InputExpr*>(expr)) return evalInput(inp);
     if (auto cppf = dynamic_cast<const CppFuncExpr*>(expr)) return evalCppFunction(cppf);
     throw std::invalid_argument("Unsupported expression type");
 }
@@ -176,12 +174,10 @@ std::vector<double> Interpreter::evalArrange(const ArrangeExpr* expr) {
     return out;
 }
 
-// return single value as array
 std::vector<double> Interpreter::evalNumber(const NumberExpr* expr) {
     return { expr->value };
 }
 
-// flatten list elements into numeric array
 std::vector<double> Interpreter::evalList(const ListExpr* expr) {
     std::vector<double> out;
     for (auto* e : expr->elements) {
@@ -191,23 +187,36 @@ std::vector<double> Interpreter::evalList(const ListExpr* expr) {
     return out;
 }
 
-// lookup variable values via environment
 std::vector<double> Interpreter::evalIdentifier(const IdentifierExpr* expr) {
     return env_.get(expr->name);
 }
 
 std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
-    auto xValues = env_.get("__last_x__"); // vector<double>
+    auto xValues = env_.get("__last_x__");
     size_t N = xValues.size();
 
-    std::string tmpCpp   = "/tmp/plotscript_tmp.cpp";
-    std::string tmpExe   = "/tmp/plotscript_tmp_exec";
+    std::string tmpCpp, tmpExe, tmpOut;
+#ifdef _WIN32
+    const char* tempEnv = std::getenv("TEMP");
+    if (tempEnv && tempEnv[0] != '\0') {
+        tmpCpp = std::string(tempEnv) + "\\plotscript_tmp.cpp";
+        tmpExe = std::string(tempEnv) + "\\plotscript_tmp.exe";
+        tmpOut = std::string(tempEnv) + "\\plotscript_tmp_out.txt";
+    } else {
+        tmpCpp = "plotscript_tmp.cpp";
+        tmpExe = "plotscript_tmp.exe";
+        tmpOut = "plotscript_tmp_out.txt";
+    }
+#else
+    tmpCpp = "/tmp/plotscript_tmp.cpp";
+    tmpExe = "/tmp/plotscript_tmp_exec";
+    tmpOut = "/tmp/plotscript_tmp_out.txt";
+#endif
 
     std::ofstream ofs(tmpCpp);
     if (!ofs) {
-        throw std::runtime_error("Not able to open temporary C++ file for writing: " + tmpCpp);
+        throw std::runtime_error("Failed to open temp C++ file for writing: " + tmpCpp);
     }
-
     ofs << "#include <iostream>\n";
     ofs << "#include <cmath>\n";
     ofs << "using namespace std;\n\n";
@@ -229,21 +238,43 @@ std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
     ofs << "}\n";
     ofs.close();
 
-    std::string compileCmd = "g++ -O2 -std=c++17 " + tmpCpp + " -o " + tmpExe;
-    int ret = system(compileCmd.c_str());
-    if (ret != 0) {
-        throw std::runtime_error("Compilation of C++ function failed: " + tmpCpp);
+    int ret;
+#ifdef _WIN32
+    char shortExe[MAX_PATH];
+    if (GetShortPathNameA(tmpExe.c_str(), shortExe, MAX_PATH) == 0) {
+        strcpy_s(shortExe, tmpExe.c_str());
     }
 
-    std::string runCmd = tmpExe + " > /tmp/plotscript_tmp_out.txt";
+    std::string compileCmd =
+        "g++ -O2 -std=c++17 \"" + tmpCpp + "\" -o \"" + std::string(shortExe) + "\"";
+    ret = system(compileCmd.c_str());
+    if (ret != 0) {
+        throw std::runtime_error("C++ function compilation failed: " + tmpCpp);
+    }
+
+    std::string runCmd = std::string(shortExe) + " > \"" + tmpOut + "\"";
     ret = system(runCmd.c_str());
     if (ret != 0) {
-        throw std::runtime_error("Execution of C++ function failed: " + tmpExe);
+        throw std::runtime_error("C++ function execution failed: " + std::string(shortExe));
     }
 
-    std::ifstream ifs("/tmp/plotscript_tmp_out.txt");
+#else
+    std::string compileCmd = "g++ -O2 -std=c++17 " + tmpCpp + " -o " + tmpExe;
+    ret = system(compileCmd.c_str());
+    if (ret != 0) {
+        throw std::runtime_error("C++ function compilation failed: " + tmpCpp);
+    }
+
+    std::string runCmd = tmpExe + " > " + tmpOut;
+    ret = system(runCmd.c_str());
+    if (ret != 0) {
+        throw std::runtime_error("C++ function execution failed: " + tmpExe);
+    }
+#endif 
+
+    std::ifstream ifs(tmpOut);
     if (!ifs) {
-        throw std::runtime_error("Not able to open output file from C++ execution: /tmp/plotscript_tmp_out.txt");
+        throw std::runtime_error("Failed to open C++ output file: " + tmpOut);
     }
     std::vector<double> yValues;
     double y;
@@ -252,11 +283,19 @@ std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
     }
     ifs.close();
 
-    remove(tmpCpp.c_str());
-    remove(tmpExe.c_str());
-    remove("/tmp/plotscript_tmp_out.txt");
+    std::remove(tmpCpp.c_str());
+    std::remove(tmpExe.c_str());
+    std::remove(tmpOut.c_str());
 
     return yValues;
+}
+
+double Interpreter::evalScalar(const Expr* expr) {
+    auto vec = evaluate(expr);
+    if (vec.size() != 1) {
+        throw std::runtime_error("scale expression must evaluate to a single numeric value");
+    }
+    return vec[0];
 }
 
 std::vector<double> Interpreter::evalInput(const InputExpr* expr) {
@@ -274,12 +313,4 @@ std::vector<double> Interpreter::evalInput(const InputExpr* expr) {
         throw std::runtime_error("input: error while reading file \"" + fname + "\"");
     }
     return data;
-}
-
-double Interpreter::evalScalar(const Expr* expr) {
-    auto vec = evaluate(expr);
-    if (vec.size() != 1) {
-        throw std::runtime_error("scale expression must evaluate to single numeric value");
-    }
-    return vec[0];
 }
