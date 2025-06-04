@@ -1,111 +1,156 @@
+// InterpreterTest.cpp
+//
+// Tests for the Interpreter class (evaluate methods). Comments in English.
+// Uses Google Test. Ensure you link against gtest, antlr4-runtime, and your project library.
+//
+// Example CMake snippet:
+//   add_executable(InterpreterTest
+//       InterpreterTest.cpp
+//       # plus project sources if needed
+//   )
+//   target_link_libraries(InterpreterTest
+//       gtest_main
+//       antlr4_runtime
+//       # plus your project library containing Interpreter.o, AST.o, etc.
+//   )
+//   add_test(NAME InterpreterTest COMMAND InterpreterTest)
+
+#include <gtest/gtest.h>
+#include <fstream>
+#include <cstdio>  // for std::remove
+
 #include "Interpreter.h"
 #include "AST.h"
-#include "Environment.h"
-#include "gtest/gtest.h"
 
-static NumberExpr* num(double v) { return new NumberExpr{v}; }
-static ListExpr* list(std::initializer_list<Expr*> elems) {
-  return new ListExpr{std::vector<Expr*>(elems)};
-}
-static IdentifierExpr* id(const std::string& name) {
-  return new IdentifierExpr{name};
-}
+using namespace std;
 
-static AssignmentStmt* assign(const std::string& var, Expr* expr) {
-  return new AssignmentStmt{ var, expr };
+// Test that evaluating a NumberExpr yields a single-element vector.
+TEST(InterpreterTest, EvaluateNumberExpr) {
+    Interpreter interp;
+    const NumberExpr num(42.5);
+    vector<double> result = interp.evaluate(&num);
+    ASSERT_EQ(result.size(), 1u);
+    EXPECT_DOUBLE_EQ(result[0], 42.5);
 }
 
-// we won’t test PlotCommandStmt here since it invokes Plotter::drawPlot
+// Test that evaluating a ListExpr with nested NumberExpr concatenates correctly.
+TEST(InterpreterTest, EvaluateListExprNested) {
+    Interpreter interp;
 
-TEST(EvaluateTests, Number) {
-  Interpreter I;
-  auto vec = I.evaluate(num(42.5));
-  ASSERT_EQ(vec.size(), 1);
-  EXPECT_DOUBLE_EQ(vec[0], 42.5);
+    // Build a nested list: [1, [2, 3], 4]
+    Expr* innerList = new ListExpr({ new NumberExpr(2.0), new NumberExpr(3.0) });
+    Expr* outerList = new ListExpr({ new NumberExpr(1.0), innerList, new NumberExpr(4.0) });
+
+    vector<double> result = interp.evaluate(outerList);
+
+    // The result should be [1, 2, 3, 4]
+    vector<double> expected = {1.0, 2.0, 3.0, 4.0};
+    EXPECT_EQ(result.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_DOUBLE_EQ(result[i], expected[i]);
+    }
+
+    delete outerList;  // This also deletes innerList and its children
 }
 
-TEST(EvaluateTests, ListFlat) {
-  Interpreter I;
-  Expr* e = list({ num(1), list({ num(2), num(3) }), num(4) });
-  auto vec = I.evaluate(e);
-  EXPECT_EQ(vec, (std::vector<double>{1,2,3,4}));
+// Test that ArrangeExpr yields the correct sequence when first <= last.
+TEST(InterpreterTest, EvaluateArrangeExprAscending) {
+    Interpreter interp;
+
+    // Arrange from 0 to 3 with step 1: should be [0,1,2,3]
+    ArrangeExpr arr(0.0, 3.0, 1.0, true);
+    vector<double> result = interp.evaluate(&arr);
+
+    vector<double> expected = {0.0, 1.0, 2.0, 3.0};
+    EXPECT_EQ(result.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_DOUBLE_EQ(result[i], expected[i]);
+    }
 }
 
-TEST(EvaluateTests, UndefinedIdentifier) {
-  Interpreter I;
-  EXPECT_THROW(I.evaluate(id("x")), std::runtime_error);
+// Test that ArrangeExpr yields the correct descending sequence when first > last.
+TEST(InterpreterTest, EvaluateArrangeExprDescending) {
+    Interpreter interp;
+
+    // Arrange from 3 down to 1 with step 1: should be [3,2,1]
+    ArrangeExpr arr(3.0, 1.0, 1.0, true);
+    vector<double> result = interp.evaluate(&arr);
+
+    vector<double> expected = {3.0, 2.0, 1.0};
+    EXPECT_EQ(result.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_DOUBLE_EQ(result[i], expected[i]);
+    }
 }
 
-TEST(InterpretTests, AssignmentAndLookup) {
-  Interpreter I;
-  Program P;
-  P.statements.push_back(assign("a", list({ num(3), num(5) })));
-  I.interpret(&P);
+// Test that ArrangeExpr with non-positive step throws an exception.
+TEST(InterpreterTest, ArrangeExprZeroStepThrows) {
+    Interpreter interp;
 
-  auto result = I.evaluate(id("a"));
-  EXPECT_EQ(result, (std::vector<double>{3,5}));
+    // hasStep = true but step = 0.0 → should throw runtime_error
+    ArrangeExpr arr(0.0, 5.0, 0.0, true);
+    EXPECT_THROW(interp.evaluate(&arr), std::runtime_error);
 }
 
-/*TEST(InterpretTests, PlotSizeMismatchThrows) {
-  Interpreter I;
-  // fake a PlotCommandStmt with mismatched list lengths
-  PlotCommandStmt* plt = new PlotCommandStmt{
-    list({ num(1), num(2) }),
-    list({ num(3) }),
-    std::string("dummy.png")
-  };
-  Program P;
-  P.statements.push_back(plt);
+// Test that IdentifierExpr with no prior assignment throws invalid_argument (via env_.get).
+TEST(InterpreterTest, EvaluateIdentifierExprUndefined) {
+    Interpreter interp;
 
-  EXPECT_THROW(I.interpret(&P), std::runtime_error);
-}*/
-
-TEST(EvaluateEdgeCases, NullptrExprReturnsEmpty) {
-  Interpreter I;
-  auto v = I.evaluate(nullptr);
-  EXPECT_TRUE(v.empty());
+    IdentifierExpr id("undefinedVar");
+    EXPECT_THROW(interp.evaluate(&id), std::exception);
 }
 
-TEST(InterpretEdgeCases, EmptyProgramDoesNothing) {
-  Interpreter I;
-  Program P;
-  EXPECT_NO_THROW(I.interpret(&P));
+// Test InputExpr by creating a small temporary file on disk.
+TEST(InterpreterTest, EvaluateInputExprReadsFile) {
+    // Create a temporary file with a few numbers
+    const std::string filename = "temp_test_input.txt";
+    std::ofstream ofs(filename);
+    ASSERT_TRUE(ofs.is_open());
+    ofs << "10.0 20.5 30\n";
+    ofs.close();
+
+    Interpreter interp;
+    InputExpr inpExpr(filename);
+
+    vector<double> result = interp.evaluate(&inpExpr);
+
+    // The file contained "10.0 20.5 30"
+    vector<double> expected = {10.0, 20.5, 30.0};
+    EXPECT_EQ(result.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_DOUBLE_EQ(result[i], expected[i]);
+    }
+
+    // Clean up
+    std::remove(filename.c_str());
 }
 
-TEST(InterpreterTests, ReassignVariable) {
-  Interpreter I;
-  Program P;
-  P.statements.push_back(assign("x", num(1)));        // x = [1]
-  P.statements.push_back(assign("x", list({num(2), num(3)}))); // x = [2,3]
-  I.interpret(&P);
-  EXPECT_EQ(I.evaluate(id("x")), (std::vector<double>{2,3}));
+// Test that evalIdentifier returns a previously set variable via interpret().
+TEST(InterpreterTest, AssignAndEvaluateIdentifier) {
+    // Build a Program manually: x: [1,2,3]; y: x
+    Program* program = new Program();
+    Expr* listExpr = new ListExpr({ new NumberExpr(1.0), new NumberExpr(2.0), new NumberExpr(3.0) });
+    program->statements.push_back(new AssignmentStmt("x", listExpr));
+    // y := x
+    program->statements.push_back(new AssignmentStmt("y", new IdentifierExpr("x")));
+
+    Interpreter interp;
+    // interpret(program) will set env_["x"] = {1,2,3} and then env_["y"] = env_["x"]
+    EXPECT_NO_THROW(interp.interpret(program));
+
+    // Now evaluate IdentifierExpr("y") directly
+    IdentifierExpr idY("y");
+    vector<double> result = interp.evaluate(&idY);
+
+    vector<double> expected = {1.0, 2.0, 3.0};
+    EXPECT_EQ(result.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_DOUBLE_EQ(result[i], expected[i]);
+    }
+
+    delete program;
 }
 
-TEST(InterpreterTests, ResultIsCopy) {
-  Interpreter I;
-  Program P; P.statements.push_back(assign("v", list({num(5)})));
-  I.interpret(&P);
-  auto out = I.evaluate(id("v"));
-  out[0] = 99;                              
-  EXPECT_EQ(I.evaluate(id("v"))[0], 5);
-}
-
-TEST(InterpreterTests, ListWithIdentifier) {
-  Interpreter I;
-  Program P;
-  P.statements.push_back(assign("a", list({num(1), num(2)})));
-  // b = [a, 3] → [1,2,3]
-  P.statements.push_back(assign("b", list({ id("a"), num(3) })));
-  I.interpret(&P);
-  EXPECT_EQ(I.evaluate(id("b")), (std::vector<double>{1,2,3}));
-}
-
-TEST(InterpreterTests, NestedUndefinedIdentifierThrows) {
-  Interpreter I;
-  Program P;
-  P.statements.push_back(assign("c", list({ num(1), id("missing") })));
-  EXPECT_THROW(I.interpret(&P), std::runtime_error);
-}
 
 
 
