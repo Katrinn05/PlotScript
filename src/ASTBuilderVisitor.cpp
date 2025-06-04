@@ -11,7 +11,10 @@ std::any ASTBuilderVisitor::visitProgram(PlotScriptParser::ProgramContext *ctx) 
         auto *plotCmd = std::any_cast<PlotCommandStmt*>( visit(pd) );
         program->statements.push_back(plotCmd);
     }
-    // (Optionally handle exportStatement here)
+    if (ctx->exportStatement()) {
+        auto *exp = std::any_cast<ExportStmt*>( visit(ctx->exportStatement()) );
+        program->statements.push_back(exp);
+    }
     return program;
 }
 
