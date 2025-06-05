@@ -22,10 +22,10 @@ The aim of this project is to develop an interpreter for a custom-designed progr
 - Business analysts
 
 ### Type of Translator
-The program will be implemented as an **interpreter**, which analyzes and executes PlotScript code at runtime.
+The program is implemented as an **interpreter**, which analyzes and executes PlotScript code at runtime.
 
 ### Expected Output of the Program
-The PlotScript interpreter will:
+The PlotScript interpreter can:
 - Generate 2D charts from arrays or function expressions,
 - Import data from external files,
 - Allow embedding of user-defined mathematical functions in C++,
@@ -34,7 +34,7 @@ The PlotScript interpreter will:
 - Provide simple customization options (e.g., axis scale, color).
 
 ### Implementation Language
-The interpreter will be implemented in **C++**, using the following tools and libraries:
+The interpreter is implemented in **C++**, using the following tools and libraries:
 - `ANTLR 4` for lexer and parser generation,
 - `Standard C++ STL` for data handling and execution logic.
 - No external graphics libraries are used:
@@ -43,11 +43,12 @@ The interpreter will be implemented in **C++**, using the following tools and li
 - - Catmull–Rom splines: smooth curves by interpolating between data points and drawing small segments.
 - - Custom 5×7 bitmap font (font5x7): renders digits and symbols by setting individual pixels.
 - - Manual BMP encoder (writeBMP): builds BMP headers and writes the pixel buffer as a 24-bit BMP file.
+GUI Application is implemented in Python
    
 ### Scanner/Parser Implementation
-The lexical and syntactic analysis will be done using **ANTLR 4**, a powerful parser generator that supports C++ as a target language.
+The lexical and syntactic analysis is done using **ANTLR 4**, a powerful parser generator that supports C++ as a target language.
 
-ANTLR-generated C++ code will be integrated into the interpreter runtime.
+ANTLR-generated C++ code is integrated into the interpreter runtime.
 
 ## Token Overview
 
