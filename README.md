@@ -263,7 +263,7 @@ log_condition {
 ```
 ![log](log_condition.jpg)
 
-## HOWTO BUILD
+## HOW TO BUILD
 ### Requirements
 
 1. **CMake** (version 3.15 or higher)
