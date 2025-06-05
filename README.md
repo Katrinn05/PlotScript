@@ -31,6 +31,10 @@ The PlotScript interpreter will:
 The interpreter will be implemented in **C++**, using the following tools and libraries:
 - `ANTLR 4` for lexer and parser generation,
 - `Standard C++ STL` for data handling and execution logic.
+- Cairo (2D rendering) + libpng
+- - We use Cairo to draw into an off-screen surface (lines, text, curves, with antialiasing). Once drawing is complete, calling cairo_surface_write_to_png(...) invokes libpng internally to encode and save the pixel buffer as a PNG file.
+- stb_image_write.h (BMP and other formats)
+- - To output BMP (or other raster formats), we retrieve the raw pixel data from Cairo (cairo_image_surface_get_data(...)) and then call stbi_write_bmp(...) (from stb_image_write) to write out a .bmp file.
 
 ### Scanner/Parser Implementation
 The lexical and syntactic analysis will be done using **ANTLR 4**, a powerful parser generator that supports C++ as a target language.
