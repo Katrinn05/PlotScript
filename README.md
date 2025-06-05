@@ -29,7 +29,6 @@ The PlotScript interpreter will:
 
 ### Implementation Language
 The interpreter will be implemented in **C++**, using the following tools and libraries:
-- `to be determined` for rendering plots / images,
 - `ANTLR 4` for lexer and parser generation,
 - `Standard C++ STL` for data handling and execution logic.
 
@@ -179,5 +178,55 @@ custom_plot {
 }
 ```
 ![custom_plot](custom_plot.png)
+```plotscript
+log_plot {
+    axis1: arrange(first(0.1), last(10), step(0.1f)); 
+    axis2: func(
+        $CPP$
+        double f(double x){
+            return log(x);
+        }
+        $$
+    );
+    color: [0, 128, 128];
+    output: 'log.png';
+}
+```
+![log](log.jpg)
+```plotscript
+exp_decay {
+    axis1: arrange(first(0), last(10), step(0.4f));
+    axis2: func(
+        $CPP$
+        double f(double x){
+            double tau = 3.0;
+            return exp((-1) * x / tau);
+        }
+        $$
+    );
+    color: [10, 55, 0];
+    axis1-scale: 2;
+    output: 'exp_decay.png';
+}
+```
+![log](exp_decay.png)
+```plotscript
+gaussian {
+    axis1: arrange(first(-3), last(3), step(0.1f));
+    axis2: func(
+        $CPP$
+        double f(double x) {
+            double pi = 3.141592653589793;
+            return (1.0 / sqrt(2.0 * pi)) * exp(-0.5 * x * x);
+        }
+        $$
+    );
+    axis2-scale: 100;
+    color: [255, 0, 0];
+    output: 'gaussian.png';
+}
+```
+![log](gaussian.png)
+
 ## Grammar
 [antlr4 file with grammar](PlotScriptParser.g4)
