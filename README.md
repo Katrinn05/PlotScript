@@ -31,6 +31,12 @@ The PlotScript interpreter will:
 The interpreter will be implemented in **C++**, using the following tools and libraries:
 - `ANTLR 4` for lexer and parser generation,
 - `Standard C++ STL` for data handling and execution logic.
+- No external graphics libraries are used:
+- - Pixel buffer: a 2D vector<vector<Color>> stores RGB for each pixel.
+- - Bresenham’s algorithm (drawLine): draws lines pixel by pixel.
+- - Catmull–Rom splines: smooth curves by interpolating between data points and drawing small segments.
+- - Custom 5×7 bitmap font (font5x7): renders digits and symbols by setting individual pixels.
+- - Manual BMP encoder (writeBMP): builds BMP headers and writes the pixel buffer as a 24-bit BMP file.
    
 ### Scanner/Parser Implementation
 The lexical and syntactic analysis will be done using **ANTLR 4**, a powerful parser generator that supports C++ as a target language.
