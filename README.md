@@ -22,7 +22,7 @@ The program will be implemented as an **interpreter**, which analyzes and execut
 The PlotScript interpreter will:
 - Generate 2D charts from arrays or function expressions,
 - Import data from external files,
-- Allow embedding of user-defined mathematical functions in C,
+- Allow embedding of user-defined mathematical functions in C++,
 - Export plots to image files (e.g., PNG),
 - Support grouped exporting of multiple plots,
 - Provide simple customization options (e.g., axis scale, color).
