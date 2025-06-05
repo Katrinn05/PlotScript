@@ -15,6 +15,12 @@
 ### General Goals
 The aim of this project is to develop an interpreter for a custom-designed programming language called **PlotScript**. The language is intended for easy generation of 2D plots from both static and dynamic data sources. PlotScript supports mathematical functions, data import from external files, and exporting charts to image formats.
 
+### Target Group
+- Students and researchers
+- Programmers and data analysts
+- Educators
+- Business analysts
+
 ### Type of Translator
 The program will be implemented as an **interpreter**, which analyzes and executes PlotScript code at runtime.
 
