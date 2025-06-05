@@ -43,6 +43,7 @@ The interpreter is implemented in **C++**, using the following tools and librari
 - - Catmull–Rom splines: smooth curves by interpolating between data points and drawing small segments.
 - - Custom 5×7 bitmap font (font5x7): renders digits and symbols by setting individual pixels.
 - - Manual BMP encoder (writeBMP): builds BMP headers and writes the pixel buffer as a 24-bit BMP file.
+
 GUI Application is implemented in Python
    
 ### Scanner/Parser Implementation
