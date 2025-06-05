@@ -67,7 +67,6 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `TOKEN_FIRST`             | `'first'`|
 | `TOKEN_LAST`              | `'last'`|
 | `TOKEN_STEP`              | `'step'`|
-| `TOKEN_EXPORT`            | `'export'`|
 | `TOKEN_C_FUNC_START`      | `'$CPP$'`|
 | `TOKEN_C_FUNC_END`        | `'$$'`|
 | `STRING`                  | `'\'' (Character, SpecialChar)* '\''`|
@@ -126,34 +125,47 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 ## Example PlotScript Code
 
 ```plotscript
-plot1{ 
-    axis1: [1,2,3,4,5];
-    axis2: [1,4,9,16,25];
-    output: 'output1.png';
+simple_plot {
+    axis1: [0, 1, 2, 3, 4, 5];
+    axis2: [0, 2, 4, 6, 8, 10];
+    output: 'simple_plot.png';
 }
-
-wykres2{
-    axis1: arrange(first(0), last(10), step(0.5f)); 
+```
+![simple_plot](simple_plot.png)
+```plotscript
+sin_wave {
+    axis1: arrange(first(0), last(6.28318), step(0.1f)); 
     axis2: func(
         $CPP$
         double f(double x){
-            return x*x;
+            return sin(x);
         }
         $$
     );
-    output: 'output2.png';
+    color: [0, 128, 255];
+    output: 'sin_wave.png';
 }
-
-my_plot3{ 
-    output: 'my_output3.png';
-    axis1: input('X1.txt');
-    axis1-scale: arrange(first(-100), last(100));
-    axis2: input('Y.txt');
-    color: '#FF0000';
+```
+![sin_wave](sin_wave.png)
+```plotscript
+data_from_files {
+    axis1: input('X_data.txt');
+    axis2: func(
+        $CPP$
+        double f(double x){
+            return exp(x);
+        }
+        $$
+    );
+    axis1-scale: 2;
+    color: [128, 128, 128];
+    output: 'data_plot.png';
 }
-
-ex4{
-    axis1: arrange(first(0), last(10), step(0.5f)); 
+```
+![data_plot](data_plot.png)
+```plotscript
+custom_plot {
+    axis1: arrange(first(1), last(100));
     axis2: func(
         $CPP$
         double f(double x){
@@ -162,10 +174,10 @@ ex4{
         }
         $$
     );
-    output: 'output2.png';
+    color: [64, 128, 64];
+    output: 'custom_plot.png';
 }
-
-export(plot1, wykres2, my_plot3)
 ```
+![custom_plot](custom_plot.png)
 ## Grammar
 [antlr4 file with grammar](PlotScriptParser.g4)
