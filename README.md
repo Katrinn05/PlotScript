@@ -39,7 +39,7 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 
 ## Token Overview
 
-[antlr4 file with lekser](PlotScriptLexer.g4)
+[antlr4 file with lekser](grammar/PlotScriptLexer.g4)
 
 ### PlotScript tokens
 
@@ -120,6 +120,8 @@ ANTLR-generated C++ code will be integrated into the interpreter runtime.
 | `C_NUMBER`            | `'-'? Digit+ ('.' Digit+)?` |
 | `C_ID`                | `[a-zA-Z_][a-zA-Z0-9_]*`    |
 
+## Parser
+[antlr4 file with parser](grammar/PlotScriptParser.g4)
 
 ## Example PlotScript Code
 
@@ -227,6 +229,3 @@ gaussian {
 }
 ```
 ![log](gaussian.png)
-
-## Grammar
-[antlr4 file with grammar](PlotScriptParser.g4)
