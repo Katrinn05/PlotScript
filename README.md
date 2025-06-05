@@ -229,3 +229,129 @@ gaussian {
 }
 ```
 ![log](gaussian.png)
+```plotscript
+log_condition {
+    axis1: arrange(first(1), last(10), step(0.1f));
+    axis2: func(
+        $CPP$
+        double f(double x) {
+            if (x < 10.0) {
+                return log(x);
+            } else {
+                return sqrt(x);
+            }
+        }
+        $$
+    );
+    color: [0, 0, 255];
+    output: 'log_condition.png';
+}
+```
+![log](log_condition.jpg)
+
+## HOWTO BUILD
+### Requirements
+
+1. **CMake** (version 3.15 or higher)
+2. **C++ compiler** (Visual Studio on Windows, or an equivalent compiler on other platforms)
+3. **vcpkg** (for installing C++ dependencies)
+4. **Python 3.x** (preferably 3.7 or higher)
+5. **PyQt5** (must be installed into your Python environment)
+6. **PyInstaller** (to create a single executable)
+
+### Steps to Build and Package
+
+1. **Create a “build” directory**  
+   ```
+   mkdir build
+   cd build
+   ```
+
+2. **Run CMake, pointing to the vcpkg toolchain file**  
+   (Assume vcpkg is installed in `C:/tools/vcpkg`. Adjust if your vcpkg resides elsewhere.)  
+   ```
+   cmake .. ^
+     -DCMAKE_TOOLCHAIN_FILE="C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+   ```
+   - `..` refers to the repository root (where `CMakeLists.txt` is located).  
+   - The `-DCMAKE_TOOLCHAIN_FILE=…` flag tells CMake to use vcpkg for installing any required C++ libraries.
+
+3. **Build the project in Debug configuration**  
+   ```
+   cmake --build . --config Debug
+   ```
+   - This step compiles the PlotScript library/executable. When it finishes, you’ll have `PlotScript.exe` (or `PlotScript` on non-Windows platforms) in the `build` folder.
+
+4. **Return to the project root folder**  
+   ```
+   cd ..
+   ```
+
+5. **Install Python dependencies (if not already installed)**  
+   ```
+   pip install pyqt5 pyinstaller
+   ```
+   - Ensures that PyQt5 and PyInstaller are available in your Python environment.
+
+6. **Run PyInstaller to package the GUI into a single executable**  
+   ```
+   pyinstaller --onefile --windowed --add-binary "PlotScript:." gui_plotscript.py
+   ```
+   Explanation:  
+   - `--onefile` produces a single `.exe` (or single self-contained binary on macOS/Linux).  
+   - `--windowed` suppresses the console window and builds a GUI-only application.  
+   - `--add-binary "PlotScript:."` copies the `PlotScript.exe` (or `PlotScript` binary) into the same folder as the packaged GUI.  
+   - At the end of this step, PyInstaller creates a `dist` folder containing `gui_plotscript.exe`.
+
+### Result
+
+After completing steps 1–6, you will have:
+
+```
+dist/
+└── gui_plotscript.exe
+```
+
+- You can place any data files (for example, `data.txt`) side-by-side with `gui_plotscript.exe`.  
+- When you call `input('data.txt')` inside the GUI, it will look for `data.txt` in the same folder as the running executable.
+
+### Full Example of All Commands
+
+1. Create the build directory and change into it:  
+   ```
+   mkdir build
+   cd build
+   ```
+
+2. Configure with CMake and vcpkg:  
+   ```
+   cmake .. ^
+     -DCMAKE_TOOLCHAIN_FILE="C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+   ```
+
+3. Build in Debug mode:  
+   ```
+   cmake --build . --config Debug
+   ```
+
+4. Return to the project root:  
+   ```
+   cd ..
+   ```
+
+5. (Optional) Install Python dependencies:  
+   ```
+   pip install pyqt5 pyinstaller
+   ```
+
+6. Package the GUI with PyInstaller:  
+   ```
+   pyinstaller --onefile --windowed --add-binary "PlotScript:." gui_plotscript.py
+   ```
+
+After this, you will find:
+
+```
+dist/
+└── gui_plotscript.exe
+```
