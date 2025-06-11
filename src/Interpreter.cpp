@@ -1,13 +1,13 @@
 #include "Interpreter.h"
 #include "Plotter.h"
-#include <stdexcept>
+#include "Errors.h" 
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
 #include <string>
 #include <vector>
 #include <utility>
-#include <windows.h>
+// #include <windows.h>
 
 void Interpreter::interpret(const Program* program) {
     if (!program) return;
@@ -20,7 +20,7 @@ void Interpreter::interpret(const Program* program) {
         else if (auto plot = dynamic_cast<const PlotCommandStmt*>(node)) {
             const std::string& nm = plot->name;
             if (plotDefs_.count(nm)) {
-                throw std::runtime_error("Duplicate plot name: " + nm);
+                throw SemanticError("Duplicate plot name: " + nm);
             }
             plotDefs_[nm] = plot;
         }
@@ -29,7 +29,7 @@ void Interpreter::interpret(const Program* program) {
             for (const std::string& plotName : expStmt->plotNames) {
                 auto it = plotDefs_.find(plotName);
                 if (it == plotDefs_.end()) {
-                    throw std::runtime_error("Export: unknown plot name \"" + plotName + "\"");
+                    throw SemanticError("Export: unknown plot name \"" + plotName + "\"");
                 }
                 const PlotCommandStmt* plotDef = it->second;
 
@@ -37,17 +37,17 @@ void Interpreter::interpret(const Program* program) {
                 env_.set("__last_x__", x);
                 auto y = evaluate(plotDef->axis2Expr);
                 if (x.size() != y.size()) {
-                    throw std::runtime_error("axis1 and axis2 size mismatch");
+                    throw RuntimeError("axis1 and axis2 size mismatch");
                 }
 
                 double xScale = 1.0, yScale = 1.0;
                 if (plotDef->axis1ScaleExpr) {
                     xScale = evalScalar(plotDef->axis1ScaleExpr);
-                    if (xScale <= 0) throw std::runtime_error("axis1-scale must be positive");
+                    if (xScale <= 0) throw SemanticError("axis1-scale must be positive");
                 }
                 if (plotDef->axis2ScaleExpr) {
                     yScale = evalScalar(plotDef->axis2ScaleExpr);
-                    if (yScale <= 0) throw std::runtime_error("axis2-scale must be positive");
+                    if (yScale <= 0) throw SemanticError("axis2-scale must be positive");
                 }
 
                 std::vector<std::pair<double,double>> pts;
@@ -61,11 +61,11 @@ void Interpreter::interpret(const Program* program) {
                 if (plotDef->colorExpr) {
                     auto colVals = evaluate(plotDef->colorExpr);
                     if (colVals.size() != 3) {
-                        throw std::runtime_error("color: expected 3 components for RGB color");
+                        throw SemanticError("color: expected 3 components for RGB color");
                     }
                     for (double v : colVals) {
                         if (v < 0 || v > 255) {
-                            throw std::runtime_error("color: components must be in range [0, 255]");
+                            throw SemanticError("color: components must be in range [0, 255]");
                         }
                     }
                     customColor.r = static_cast<unsigned char>(std::lround(colVals[0]));
@@ -82,7 +82,7 @@ void Interpreter::interpret(const Program* program) {
             }
         }
         else {
-            throw std::runtime_error("Unknown AST node in interpret");
+            throw LogicError("Unknown AST node in interpret");
         }
     }
 
@@ -94,17 +94,17 @@ void Interpreter::interpret(const Program* program) {
             env_.set("__last_x__", x);
             auto y = evaluate(plotDef->axis2Expr);
             if (x.size() != y.size()) {
-                throw std::runtime_error("axis1 and axis2 size mismatch for a plot");
+                throw RuntimeError("axis1 and axis2 size mismatch for a plot");
             }
 
             double xScale = 1.0, yScale = 1.0;
             if (plotDef->axis1ScaleExpr) {
                 xScale = evalScalar(plotDef->axis1ScaleExpr);
-                if (xScale <= 0) throw std::runtime_error("axis1-scale must be positive");
+                if (xScale <= 0) throw SemanticError("axis1-scale must be positive");
             }
             if (plotDef->axis2ScaleExpr) {
                 yScale = evalScalar(plotDef->axis2ScaleExpr);
-                if (yScale <= 0) throw std::runtime_error("axis2-scale must be positive");
+                if (yScale <= 0) throw SemanticError("axis2-scale must be positive");
             }
 
             std::vector<std::pair<double,double>> pts;
@@ -118,11 +118,11 @@ void Interpreter::interpret(const Program* program) {
             if (plotDef->colorExpr) {
                 auto colVals = evaluate(plotDef->colorExpr);
                 if (colVals.size() != 3) {
-                    throw std::runtime_error("color: expected 3 components for RGB color");
+                    throw SemanticError("color: expected 3 components for RGB color");
                 }
                 for (double v : colVals) {
                     if (v < 0 || v > 255) {
-                        throw std::runtime_error("color: components must be in range [0, 255]");
+                        throw SemanticError("color: components must be in range [0, 255]");
                     }
                 }
                 customColor.r = static_cast<unsigned char>(std::lround(colVals[0]));
@@ -150,7 +150,7 @@ std::vector<double> Interpreter::evaluate(const Expr* expr) {
     if (auto arr = dynamic_cast<const ArrangeExpr*>(expr)) return evalArrange(arr);
     if (auto inp = dynamic_cast<const InputExpr*>(expr)) return evalInput(inp);
     if (auto cppf = dynamic_cast<const CppFuncExpr*>(expr)) return evalCppFunction(cppf);
-    throw std::invalid_argument("Unsupported expression type");
+    throw LogicError("Unsupported expression type");
 }
 
 std::vector<double> Interpreter::evalArrange(const ArrangeExpr* expr) {
@@ -159,7 +159,7 @@ std::vector<double> Interpreter::evalArrange(const ArrangeExpr* expr) {
     double s = expr->hasStep ? expr->step : 1.0;
 
     if (s <= 0) {
-        throw std::runtime_error("arrange: step must be positive");
+        throw SemanticError("arrange: step must be positive");
     }
     std::vector<double> out;
     if (f <= l) {
@@ -215,7 +215,7 @@ std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
 
     std::ofstream ofs(tmpCpp);
     if (!ofs) {
-        throw std::runtime_error("Failed to open temp C++ file for writing: " + tmpCpp);
+        throw IOError("Failed to open temp C++ file for writing: " + tmpCpp);
     }
     ofs << "#include <iostream>\n";
     ofs << "#include <cmath>\n";
@@ -249,32 +249,32 @@ std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
         "g++ -O2 -std=c++17 \"" + tmpCpp + "\" -o \"" + std::string(shortExe) + "\"";
     ret = system(compileCmd.c_str());
     if (ret != 0) {
-        throw std::runtime_error("C++ function compilation failed: " + tmpCpp);
+        throw IOError("C++ function compilation failed: " + tmpCpp);
     }
 
     std::string runCmd = std::string(shortExe) + " > \"" + tmpOut + "\"";
     ret = system(runCmd.c_str());
     if (ret != 0) {
-        throw std::runtime_error("C++ function execution failed: " + std::string(shortExe));
+        throw IOError("C++ function execution failed: " + std::string(shortExe));
     }
 
 #else
     std::string compileCmd = "g++ -O2 -std=c++17 " + tmpCpp + " -o " + tmpExe;
     ret = system(compileCmd.c_str());
     if (ret != 0) {
-        throw std::runtime_error("C++ function compilation failed: " + tmpCpp);
+        throw IOError("C++ function compilation failed: " + tmpCpp);
     }
 
     std::string runCmd = tmpExe + " > " + tmpOut;
     ret = system(runCmd.c_str());
     if (ret != 0) {
-        throw std::runtime_error("C++ function execution failed: " + tmpExe);
+        throw IOError("C++ function execution failed: " + tmpExe);
     }
 #endif 
 
     std::ifstream ifs(tmpOut);
     if (!ifs) {
-        throw std::runtime_error("Failed to open C++ output file: " + tmpOut);
+        throw IOError("Failed to open C++ output file: " + tmpOut);
     }
     std::vector<double> yValues;
     double y;
@@ -293,7 +293,7 @@ std::vector<double> Interpreter::evalCppFunction(const CppFuncExpr* expr) {
 double Interpreter::evalScalar(const Expr* expr) {
     auto vec = evaluate(expr);
     if (vec.size() != 1) {
-        throw std::runtime_error("scale expression must evaluate to a single numeric value");
+        throw RuntimeError("scale expression must evaluate to a single numeric value");
     }
     return vec[0];
 }
@@ -302,7 +302,7 @@ std::vector<double> Interpreter::evalInput(const InputExpr* expr) {
     const std::string& fname = expr->filename;
     std::ifstream ifs(fname);
     if (!ifs) {
-        throw std::runtime_error("input: cannot open file \"" + fname + "\"");
+        throw IOError("input: cannot open file \"" + fname + "\"");
     }
     std::vector<double> data;
     double value;
@@ -310,7 +310,7 @@ std::vector<double> Interpreter::evalInput(const InputExpr* expr) {
         data.push_back(value);
     }
     if (ifs.bad()) {
-        throw std::runtime_error("input: error while reading file \"" + fname + "\"");
+        throw IOError("input: error while reading file \"" + fname + "\"");
     }
     return data;
 }

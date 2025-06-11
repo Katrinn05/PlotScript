@@ -10,7 +10,9 @@
 
 #include "ASTBuilderVisitor.h"
 #include "AST.h"
-#include "Interpreter.h"  // Changed: include Interpreter for executing Plotter
+#include "Interpreter.h"
+
+#include "ParserErrorListener.h"
 
 using namespace antlr4;
 using namespace std;
@@ -56,7 +58,7 @@ int main(int argc, const char* argv[]) {
     // 3. Parser
     PlotScriptParser parser(&tokens);
     parser.removeErrorListeners();
-    parser.addErrorListener(new ConsoleErrorListener());
+    parser.addErrorListener(new ParserErrorListener());
 
     // 4. Parse the top-level rule
     PlotScriptParser::ProgramContext* tree = parser.program();
@@ -89,14 +91,14 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    // Removed: Simple AST dump to console
-    // Changed: Use Interpreter to execute PlotCommandStmt and produce PNG
-    {
+    try {
         Interpreter interp;
         interp.interpret(program);
+    } catch (const PlotScriptError& e) {
+        cerr << e.what() << '\n';
+        return 2;
     }
 
-    // Cleanup
     delete program;
     return 0;
 }

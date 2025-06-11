@@ -130,7 +130,7 @@ TEST(ASTBuilderVisitorTest, SyntaxErrorReturnsNull) {
     )plotscript";
 
     Program* program = buildASTFromString(badScript);
-    EXPECT_EQ(program, nullptr) << "Invalid syntax should produce a null AST";
+    EXPECT_EQ(program, nullptr);
 }
 
 // Test that arrange/function-call constructs are parsed into ArrangeExpr or CppFuncExpr.

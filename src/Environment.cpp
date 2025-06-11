@@ -1,4 +1,5 @@
 #include "Environment.h"
+#include "Errors.h"
 
 void Environment::set(const std::string& name, const Value& value) {
     table_[name] = value;
@@ -7,7 +8,7 @@ void Environment::set(const std::string& name, const Value& value) {
 const Environment::Value& Environment::get(const std::string& name) const {
     auto it = table_.find(name);
     if (it == table_.end()) {
-        throw std::runtime_error("Undefined variable: " + name);
+        throw SemanticError("Undefined variable: " + name);
     }
     return it->second;
 }

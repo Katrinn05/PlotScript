@@ -84,15 +84,22 @@ add_library(PlotScriptLib
 
 add_dependencies(PlotScriptLib antlr4_gen)
 
+add_library(errors INTERFACE)
+target_include_directories(errors INTERFACE ${CMAKE_SOURCE_DIR}/errors)
+
 if(WIN32)
-  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
+  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB} PUBLIC errors)
 else()
-  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB})
+  target_link_libraries(PlotScriptLib PRIVATE ${ANTLR4_RUNTIME_LIB} PUBLIC errors)
 endif()
 
 add_executable(PlotScript src/main.cpp)
 target_link_libraries(PlotScript PRIVATE PlotScriptLib)
 
+if (NOT MSVC AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  add_compile_options(-fsanitize=address,undefined)
+  add_link_options(-fsanitize=address,undefined)
+endif()
 
 if(CMAKE_CONFIGURATION_TYPES) 
   set_target_properties(PlotScript PROPERTIES
@@ -143,3 +150,12 @@ target_link_libraries(ASTBuilderTest
 gtest_discover_tests(ASTBuilderTest)
 
 add_definitions(-DTEST_SRCDIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
+
+add_executable(ErrorThrowingTest tests/ErrorThrowingTest.cpp)
+
+target_link_libraries(ErrorThrowingTest 
+  PRIVATE 
+    GTest::gtest_main
+    PlotScriptLib
+)
+gtest_discover_tests(ErrorThrowingTest)

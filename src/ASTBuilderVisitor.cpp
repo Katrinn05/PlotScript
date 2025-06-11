@@ -1,6 +1,7 @@
 #include "ASTBuilderVisitor.h"
 #include "AST.h"
 #include "PlotScriptParser.h"
+#include "Errors.h"
 
 using namespace antlrcpp;
 using namespace std;
@@ -175,7 +176,7 @@ std::any ASTBuilderVisitor::visitStringLikeFunctionParam(PlotScriptParser::Strin
 std::any ASTBuilderVisitor::visitRangeArgs(PlotScriptParser::RangeArgsContext *ctx) {
     auto numNodes = ctx->getTokens(PlotScriptParser::NUMBER); 
     if (numNodes.size() < 2) {
-        throw runtime_error("rangeArgs: expected at least two numeric arguments");
+        PSL_THROW(SemanticError, ctx, "rangeArgs: expected at least two numeric arguments");
     }
 
     double firstVal = std::stod(numNodes[0]->getText());
@@ -186,7 +187,7 @@ std::any ASTBuilderVisitor::visitRangeArgs(PlotScriptParser::RangeArgsContext *c
 
     if (ctx->getToken(PlotScriptParser::TOKEN_STEP, 0)) {
         if (numNodes.size() < 3) {
-            throw runtime_error("rangeArgs: STEP specified but no step value provided");
+            PSL_THROW(SemanticError, ctx, "rangeArgs: STEP specified but no step value provided");
         }
         stepVal = std::stod(numNodes[2]->getText());
         hasStep = true;
@@ -199,13 +200,13 @@ std::any ASTBuilderVisitor::visitEmbeddedFunctionBlock(PlotScriptParser::Embedde
     antlr4::Token* startToken = ctx->getStart();
     antlr4::Token*   stopToken = ctx->getStop();
     if (!startToken || !stopToken) {
-        throw runtime_error("EmbeddedFunctionBlock: did not find start or stop token");
+        PSL_THROW(SemanticError, ctx, "EmbeddedFunctionBlock: did not find start or stop token");
     }
 
     antlr4::CharStream* charStream =
         startToken->getTokenSource()->getInputStream();
     if (!charStream) {
-        throw runtime_error("EmbeddedFunctionBlock: no input stream found");
+        PSL_THROW(SemanticError, ctx, "EmbeddedFunctionBlock: no input stream found");
     }
 
     antlr4::misc::Interval interval{
@@ -217,13 +218,13 @@ std::any ASTBuilderVisitor::visitEmbeddedFunctionBlock(PlotScriptParser::Embedde
     const std::string suffix = "$$";
 
     if (fullText.rfind(prefix, 0) != 0) {
-        throw runtime_error("EmbeddedFunctionBlock: expected prefix \"$CPP$\"");
+        PSL_THROW(SemanticError, ctx, "EmbeddedFunctionBlock: expected prefix \"$CPP$\"");
     }
     if (fullText.size() < prefix.size() + suffix.size()) {
-        throw runtime_error("EmbeddedFunctionBlock: too short for embedded function block");
+        PSL_THROW(SemanticError, ctx, "EmbeddedFunctionBlock: too short for embedded function block");
     }
     if (fullText.substr(fullText.size() - suffix.size()) != suffix) {
-        throw runtime_error("EmbeddedFunctionBlock: expected suffix \"$$\"");
+        PSL_THROW(SemanticError, ctx, "EmbeddedFunctionBlock: expected suffix \"$$\"");
     }
 
     std::string rawCode = fullText.substr(
