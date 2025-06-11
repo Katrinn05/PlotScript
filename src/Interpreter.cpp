@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-// #include <windows.h>
+#include <windows.h>
 
 void Interpreter::interpret(const Program* program) {
     if (!program) return;
