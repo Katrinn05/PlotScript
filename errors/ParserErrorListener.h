@@ -7,9 +7,11 @@ class ParserErrorListener : public antlr4::BaseErrorListener {
                      size_t line, size_t col,
                      const std::string& msg,
                      std::exception_ptr) override {
-        throw ParserError{msg,
-                          tok->getTokenSource()->getSourceName(),
-                          static_cast<int>(line),
-                          static_cast<int>(col)};
-    }
+        std::string src = (tok && tok->getTokenSource())
+                            ? tok->getTokenSource()->getSourceName()
+                            : "";
+        int l = tok ? static_cast<int>(line) : -1;
+        int c = tok ? static_cast<int>(col)  : -1;
+        throw ParserError{msg, src, l, c};
+                     }
 };
